@@ -9,14 +9,14 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "https://flashcardapp-backend-1048660246561.us-east1.run.app/api/$1"
+      "source": "/api/(.*)",
+      "destination": "https://flashcardapp-backend-1048660246561.us-east1.run.app/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api|assets|.*\\..*).*)",
+      "destination": "/index.html"
     }
   ]
 }
