@@ -2,12 +2,13 @@
 import json
 import re
 from verbecc import CompleteConjugator
-from verbecc.config import verbecc_config
 from lemminflect import getInflection
+import verbecc.src.mlconjug.model_utils as model_utils
 
-# Initialize verbecc CompleteConjugator engine for Spanish
-verbecc_config.ENABLE_ML_PREDICTION = False
-conjugator_engine = CompleteConjugator(lang='es')
+# Anulamos la carga de modelos ML para que retorne None al instante
+model_utils.load_model = lambda lang: None
+
+cg = CompleteConjugator(lang="es")
 
 
 def fix_encoding(text: str) -> str:
