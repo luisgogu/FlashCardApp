@@ -12,7 +12,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://flashcardapp-backend.onrender.com/api/$1"
+      "dest": "https://flashcardapp-backend-1048660246561.us-east1.run.app/api/$1"
     },
     {
       "src": "/(.*)",
