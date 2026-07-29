@@ -2,14 +2,28 @@
 import json
 import re
 import os
-
-# Establecer la variable ANTES de importar verbecc
-os.environ["VERBECC_ENABLE_ML_PREDICTION"] = "False"
-os.environ["ENABLE_ML_PREDICTION"] = "False"
-
-from verbecc import CompleteConjugator
 from lemminflect import getInflection
-cg = CompleteConjugator(lang="es")
+
+_conjugator_engine = None
+
+def get_conjugator_engine():
+    """Inicialización bajo demanda (Lazy Loading) de verbecc para inicio instantáneo del servidor."""
+    global _conjugator_engine
+    if _conjugator_engine is None:
+        try:
+            os.environ["VERBECC_ENABLE_ML_PREDICTION"] = "False"
+            os.environ["ENABLE_ML_PREDICTION"] = "False"
+            from verbecc import config
+            config.ENABLE_ML_PREDICTION = False
+        except Exception:
+            pass
+        try:
+            from verbecc import CompleteConjugator
+            _conjugator_engine = CompleteConjugator(lang="es")
+        except Exception as err:
+            print(f"[Conjugator Warning] Error al inicializar verbecc: {err}")
+            return None
+    return _conjugator_engine
 
 
 def fix_encoding(text: str) -> str:
@@ -90,7 +104,10 @@ def strip_pronoun(form_str: str) -> str:
 def extract_tenses_from_verbecc(infinitive_es: str):
     """Extrae todas las conjugaciones de verbecc para los 5 tiempos verbales."""
     try:
-        raw_json = conjugator_engine.conjugate(infinitive_es).to_json()
+        engine = get_conjugator_engine()
+        if not engine:
+            return None
+        raw_json = engine.conjugate(infinitive_es).to_json()
         data = json.loads(raw_json)
         moods = data.get('moods', {})
     except Exception as e:
