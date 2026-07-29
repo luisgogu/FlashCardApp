@@ -1,0 +1,212 @@
+Actúa como un Arquitecto de Software Senior y Desarrollador Full-Stack. Necesito que me ayudes a construir una Progressive Web App (PWA) de estudio de idiomas (estilo "SmartCards+"), diseñada específicamente para usarse en un iPhone mediante Safari ("Añadir a la pantalla de inicio").
+
+El objetivo principal es que un estudiante de español pueda guardar frases y vocabulario en contexto ("chunks"), evitando registrar frases duplicadas o muy parecidas, y repasarlas usando un algoritmo de repetición espaciada (SRS).
+
+1. Especificaciones del Stack Tecnológico
+Backend: Python con FastAPI (por su rapidez, documentación automática con Swagger/OpenAPI y manejo sencillo de endpoints).
+
+Base de Datos: SQLite (para desarrollo local o servidor sencillo) o PostgreSQL / Supabase.
+
+Frontend: React (usando Vite + TypeScript) estructurado como PWA.
+
+UI / Estilos: Tailwind CSS + Shadcn UI (o componentes estilizados con estilo nativo de iOS: bordes redondeados, tipografía limpia, modo oscuro/claro automático).
+
+Iconos: Lucide React (lucide-react).
+
+PWA Support: vite-plugin-pwa para configurar el manifest.json e iconos para iOS.
+
+2. Características Clave del Sistema
+Captura Rápida & Comprobación de Duplicados en Tiempo Real:
+
+Al empezar a escribir una frase en español en el campo de texto, el frontend enviará una petición con debouncing (esperar 300ms) al backend para buscar coincidencias exactas o parciales en la base de datos.
+
+Si existe una coincidencia, la app mostrará un aviso visual con la tarjeta existente para evitar crear duplicados.
+
+Estructura de la Tarjeta (Chunking):
+
+Texto Principal (Español): La frase completa.
+
+Traducción (Inglés).
+
+Nota / Contexto (Opcional): Explicación gramatical o situación de uso.
+
+Etiquetas / Tags: Ej. comida, verbo-ir, jerga.
+
+Algoritmo de Repaso Espaciado (SRS):
+
+Implementar una versión simplificada del algoritmo SM-2 o Leitner.
+
+Campos en la BD: next_review_date, interval_days, ease_factor, repetitions.
+
+Botones de respuesta tras ver el reverso: "Otra vez" (Fácil=0), "Difícil" (1), "Bien" (2), "Fácil" (3).
+
+Interfaz Adaptada a iPhone (PWA):
+
+Diseño Mobile-First touch-friendly.
+
+Botones inferiores estilo barra de navegación de iOS (Tab Bar): "Añadir", "Repasar", "Glosario/Buscar".
+
+3. Estrategia de Desarrollo Modular (Por Fases)
+Quiero programar esta aplicación de forma incremental, asegurando que cada módulo funcione perfectamente antes de pasar al siguiente. Por favor, guía el proceso siguiendo estrictamente este orden:
+
+FASE 1: Backend Base y Modelo de Datos (Python/FastAPI)
+
+Configuración de FastAPI y modelos SQLAlchemy / Pydantic para las tarjetas (Card).
+
+Endpoints CRUD básicos: Crear tarjeta, obtener tarjetas, buscar duplicados (GET /api/cards/check-duplicate?query=...).
+
+FASE 2: Frontend Base y Sistema Anti-Duplicados (React + Tailwind)
+
+Configuración de Vite + React + Tailwind CSS.
+
+Formulario de entrada rápido con debounce para comprobar duplicados mientras se escribe.
+
+Alerta de "Frase similar ya registrada" con opción de ver/editar la tarjeta existente o guardar de todas formas.
+
+FASE 3: Módulo de Repaso (SRS Engine)
+
+Lógica del algoritmo SM-2 en Python.
+
+Endpoint GET /api/cards/due para obtener tarjetas pendientes de repaso hoy.
+
+Endpoint POST /api/cards/{id}/review para registrar el resultado y actualizar la fecha del próximo repaso.
+
+Interfaz de flipper card (Girar tarjeta) en React con botones de valoración.
+
+FASE 4: Lista/Glosario y Búsqueda Avanzada
+
+Vista de biblioteca completa con buscador, filtros por etiquetas y ordenación por fecha de creación o próxima revisión.
+
+FASE 5: Optimización PWA para iOS
+
+Configuración de manifest.json, iconos de Apple (apple-touch-icon), soporte offline básico mediante Service Workers.
+
+Instrucción Inicial
+Para comenzar, actúa únicamente como el Arquitecto de Software y proporciona:
+
+El esquema de la base de datos (SQLAlchemy en Python) para el modelo Card.
+
+El código del backend para la FASE 1 en FastAPI, enfocándote en el endpoint de comprobación de duplicados en tiempo real.
+
+¿Por qué esta estructura facilitará el desarrollo?
+Librerías Profesionales Recomendadas:
+
+Shadcn UI + Tailwind CSS: Te darán componentes (inputs, modales, alertas) con una estética moderna que encaja con el diseño de iOS sin tener que diseñar todo desde cero.
+
+Vite PWA Plugin: Genera automáticamente la configuración requerida por Safari en iOS para que al pulsar "Añadir a la pantalla de inicio" la web responda como si fuera una aplicación nativa.
+
+Backend en Python (FastAPI):
+
+Es liviano y permite añadir librerías como fuzzywuzzy o rapidfuzz en el futuro si deseas detectar duplicados más avanzados (por ejemplo, detectar que "Tengo ganas de comer" es casi igual a "Tengo ganas de salir").
+
+Desarrollo por Fases:
+
+Evita que el asistente genere miles de líneas de código inmanejables de una sola vez. Cada fase se prueba independientemente en tu ordenador antes de conectar la siguiente parte.
+
+Implementar una versión simplificada del algoritmo SM-2 o Leitner.
+
+
+
+por que simplificada?
+
+La recomendación de empezar con una versión simplificada responde a razones puramente prácticas de arquitectura y desarrollo de software:
+
+1. Menor complejidad en el Producto Mínimo Viable (MVP)
+El algoritmo SM-2 completo (el que utiliza Anki) calcula de forma dinámica múltiples parámetros por cada tarjeta:
+
+Un Factor de Facilidad (Ease Factor) individual que sube o baja según cada respuesta.
+
+Estados de tarjeta: "Nueva", "En aprendizaje", "Repasada" y "Reaprendida" (tras un olvido).
+
+Manejo de lapsos: Un flujo especial para cuando una tarjeta antigua se falla, que la hace volver a pasar por fases de aprendizaje corto (por ejemplo, mostrarla a los 10 minutos y luego al día siguiente).
+
+Fuzzing: Un pequeño ajuste aleatorio en los días para evitar que demasiadas tarjetas coincidan exactamente el mismo día.
+
+Si intentas programar todos estos estados y reglas desde el primer día, la Fase 3 se vuelve desproporcionadamente compleja de escribir y probar.
+
+2. Facilidad de depuración (debugging)
+Con una versión simplificada o un Sistema Leitner (basado en niveles o "cajas"):
+
+Solo necesitas guardar en la base de datos el nivel de la tarjeta (por ejemplo, del 1 al 5) y la fecha del próximo repaso.
+
+La lógica en Python es directa:
+
+Acierto: Subes la tarjeta de nivel y le sumas días a la fecha actual (Nivel 1 = +1 día, Nivel 2 = +3 días, Nivel 3 = +7 días, etc.).
+
+Fallo: La devuelves al Nivel 1 y se repasa mañana.
+
+Si algo falla durante las pruebas en el iPhone, es infinitamente más fácil rastrear el error en 10 líneas de código simples que en una máquina de estados completa.
+
+3. Es totalmente escalable (Arquitectura Modular)
+Al estar la aplicación bien modularizada, la lógica del repaso estará aislada en una única función de Python en el backend (por ejemplo, calcular_proximo_repaso(tarjeta, respuesta)).
+
+Esto significa que:
+
+Puedes empezar con la versión simplificada para tener la app funcionando, probarla en el iPhone y verificar que el sistema de duplicados y la PWA van fluidos.
+
+Más adelante, cuando quieras hacer el algoritmo más preciso, solo tendrás que sustituir esa función de Python por las fórmulas completas de SM-2 o FSRS, sin necesidad de rehacer la interfaz gráfica ni modificar la estructura de la base de datos.
+
+ok, quiero que el algoritmo le recuerde una vez al dia (configurable, en una notificacion) cuando ir over las tarjetas.
+
+Para añadir recordatorios diarios programables a tu Web App (PWA) en un iPhone, es importante entender cómo gestiona Apple las notificaciones web.
+
+Desde iOS 16.4, Apple permite que las PWA añadidas a la pantalla de inicio reciban notificaciones push nativas. Sin embargo, a diferencia de una app nativa de App Store, un navegador en iOS no permite programar un "alarma local" interna en segundo plano sin servidor.  
+
+La forma más limpia, fiable y estándar de implementarlo es que tu servidor en Python envíe la notificación Web Push a la hora configurada.  
+
+¿Cómo funciona la arquitectura del recordatorio?
+Frontend (React en el iPhone):
+
+En la pantalla de ajustes de la app, tu novia activa la opción "Recordatorio diario" y elige la hora (por ejemplo, 20:00).
+
+El iPhone le pedirá permiso para enviar notificaciones.  
+
+Al aceptar, Safari genera una "suscripción push" (un token único) que el frontend envía al backend en Python.  
+
+Backend (Python / FastAPI):
+
+Guarda en la base de datos la hora elegida y el token del dispositivo.  
+
+Utiliza una librería de tareas programadas en Python como APScheduler (muy ligera y que corre dentro del mismo FastAPI).
+
+Todos los días a la hora fijada, el backend comprueba si tiene tarjetas pendientes de repasar y envía el mensaje de aviso al servidor de notificaciones de Apple (APNs) usando la librería pywebpush.  
+
+Service Worker (sw.js en el iPhone):
+
+Aunque la app esté cerrada, el sistema operativo de Apple recibe el aviso del servidor y el Service Worker muestra la notificación en la pantalla de bloqueo de iOS.  
+
+Módulo adicional para añadir al Prompt Maestro
+Puedes integrar este fragmento como una Fase adicional dentro del prompt de desarrollo que te preparé anteriormente:
+
+FASE 6: Sistema de Notificaciones y Recordatorio Diario
+
+Frontend:
+
+Botón de autorización de notificaciones (Web Push API).  
+
+Selector de hora para el recordatorio diario (ej. 20:00).
+
+Registro del Service Worker (sw.js) para escuchar eventos push y mostrar la notificación nativa en iOS.  
+
+Backend (Python):
+
+Configuración de claves VAPID para Web Push (pywebpush).  
+
+Tabla en base de datos para almacenar push_subscriptions y la hora preferida del usuario.  
+
+Integración de APScheduler en FastAPI para ejecutar una tarea diaria que verifique tarjetas pendientes y envíe la notificación Push al iPhone.  
+
+Requisitos en el iPhone para que funcione:
+El iPhone debe estar actualizado a iOS 16.4 o superior.  
+
+La Web App debe estar añadida a la pantalla de inicio (no funciona desde una pestaña abierta en Safari).  
+
+La web debe estar servida bajo protocolo seguro HTTPS (servidores como Render, Vercel o Railway te dan HTTPS gratuito automáticamente).  
+
+
+Alojamiento en la nube y Base de Datos ($0):
+Existen plataformas que ofrecen planes gratuitos (Free Tier) que cubren de sobra las necesidades de consumo de una o dos personas:
+
+Frontend (React): Puedes alojarlo gratis en Vercel, Netlify o Cloudflare Pages.
+
+Backend (Python) y Base de Datos: Puedes alojarlo gratis en servicios como Render, Railway o Supabase. Tienen memoria y espacio de almacenamiento más que suficiente para guardar miles de frases sin cobrarte nada.

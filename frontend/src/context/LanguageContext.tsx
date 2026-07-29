@@ -1,0 +1,126 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+export type Language = 'es' | 'en';
+
+interface Translations {
+  [key: string]: {
+    es: string;
+    en: string;
+  };
+}
+
+export const translations: Translations = {
+  // HEADER & NAVBAR
+  app_title: { es: 'FlashCardApp', en: 'FlashCardApp' },
+  tab_add: { es: 'Añadir', en: 'Add' },
+  tab_review: { es: 'Repaso', en: 'Review' },
+  tab_glossary: { es: 'Glosario', en: 'Glossary' },
+  tab_settings: { es: 'Ajustes', en: 'Settings' },
+  cards_count: { es: 'tarjetas', en: 'cards' },
+  log_in: { es: 'Acceder', en: 'Log In' },
+  log_out: { es: 'Salir', en: 'Log Out' },
+
+  // AUTH SCREEN
+  welcome_back: { es: '¡Bienvenido de nuevo!', en: 'Welcome back!' },
+  create_account: { es: 'Crea tu cuenta', en: 'Create your account' },
+  sign_in_tab: { es: 'Iniciar Sesión', en: 'Log In' },
+  sign_up_tab: { es: 'Crear Cuenta', en: 'Sign Up' },
+  sub_login: { es: 'Ingresa tus credenciales para acceder a tus tarjetas.', en: 'Enter your credentials to access your cards.' },
+  sub_register: { es: 'Empieza a guardar tus frases y repasar con repetición espaciada.', en: 'Start saving your phrases and reviewing with spaced repetition.' },
+  name_label: { es: 'Nombre', en: 'Name' },
+  name_placeholder: { es: 'Tu nombre o apodo', en: 'Your name or nickname' },
+  email_label: { es: 'Correo Electrónico', en: 'Email Address' },
+  email_placeholder: { es: 'ejemplo@correo.com', en: 'example@email.com' },
+  password_label: { es: 'Contraseña', en: 'Password' },
+  password_placeholder: { es: '••••••••', en: '••••••••' },
+  submit_login: { es: 'Acceder a mi cuenta', en: 'Log in to my account' },
+  submit_register: { es: 'Crear Cuenta', en: 'Create Account' },
+  footer_dev_note: { es: 'Desarrollada con cariño por Luis González 👨‍💻❤️', en: 'Made with love by Luis González 👨‍💻❤️' },
+
+  // SETTINGS VIEW
+  daily_reminder_title: { es: 'Recordatorio Diario de Repaso (Push)', en: 'Daily Review Reminder (Push)' },
+  daily_reminder_desc: {
+    es: 'Recibe un aviso diario en tu pantalla de inicio indicando cuántas tarjetas tienes listas para repasar.',
+    en: 'Receive a daily reminder on your home screen showing how many cards are due for review.'
+  },
+  time_label: { es: 'Hora del aviso:', en: 'Reminder time:' },
+  save_time: { es: 'Guardar Hora', en: 'Save Time' },
+  test_push: { es: 'Probar Notificación', en: 'Test Notification' },
+  danger_zone_title: { es: 'Zona de Peligro / Danger Zone', en: 'Danger Zone / Zona de Peligro' },
+  total_cards_saved: { es: 'Actualmente tienes', en: 'You currently have' },
+  cards_in_library: { es: 'tarjetas guardadas en tu biblioteca.', en: 'cards saved in your library.' },
+  delete_all_btn: { es: 'Eliminar todas mis tarjetas', en: 'Delete all my cards' },
+  delete_warning: {
+    es: 'Al eliminar las tarjetas se borrarán permanentemente sus datos y progreso.',
+    en: 'Deleting cards will permanently remove their data and progress.'
+  },
+  admin_tools_title: { es: 'Herramientas de Administrador / Dev Tools', en: 'Admin Tools / Dev Tools' },
+  reset_srs_btn: { es: 'Resetear Repasos SRS (Dev Debug)', en: 'Reset SRS Reviews (Dev Debug)' },
+  about_title: { es: 'FlashCardApp PWA', en: 'FlashCardApp PWA' },
+  version_label: { es: 'Versión:', en: 'Version:' },
+  db_label: { es: 'Base de datos:', en: 'Database:' },
+  push_label: { es: 'Notificaciones:', en: 'Notifications:' },
+  creator_label: { es: 'Creador & Desarrollador:', en: 'Creator & Developer:' },
+
+  // ADD CARD FORM
+  add_card_title: { es: 'Nueva Tarjeta (Chunk)', en: 'New Card (Chunk)' },
+  spanish_label: { es: 'Frase en Español', en: 'Spanish Phrase' },
+  spanish_placeholder: { es: 'Ej: ¿Podrías ayudarme con esto?', en: 'Ex: Could you help me with this?' },
+  english_label: { es: 'Traducción al Inglés', en: 'English Translation' },
+  english_placeholder: { es: 'Ej: Could you help me with this?', en: 'Ex: Could you help me with this?' },
+  notes_label: { es: 'Notas / Contexto (Opcional)', en: 'Notes / Context (Optional)' },
+  notes_placeholder: { es: 'Notas gramaticales, uso formal/informal...', en: 'Grammar notes, formal/informal usage...' },
+  tags_label: { es: 'Etiquetas', en: 'Tags' },
+  save_card_btn: { es: 'Guardar Tarjeta', en: 'Save Card' },
+
+  // REVIEW MODULE
+  no_due_cards: { es: '¡Todo al día! No tienes tarjetas pendientes para hoy.', en: "All caught up! No cards due for review today." },
+  review_all_btn: { es: 'Repasar todas las tarjetas de la biblioteca', en: 'Review all cards in library' },
+  rating_again: { es: 'Otra vez', en: 'Again' },
+  rating_hard: { es: 'Difícil', en: 'Hard' },
+  rating_good: { es: 'Bien', en: 'Good' },
+  rating_easy: { es: 'Fácil', en: 'Easy' },
+
+  // GLOSSARY VIEW
+  search_placeholder: { es: 'Buscar por español, inglés o etiqueta...', en: 'Search by Spanish, English or tag...' },
+  no_cards_found: { es: 'No se encontraron tarjetas.', en: 'No cards found.' }
+};
+
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('flashcardapp_lang');
+    return (saved === 'en' || saved === 'es') ? saved : 'es';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('flashcardapp_lang', language);
+  }, [language]);
+
+  const t = (key: string): string => {
+    const entry = translations[key];
+    if (!entry) return key;
+    return entry[language] || entry['es'];
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = (): LanguageContextType => {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
