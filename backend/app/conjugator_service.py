@@ -2,9 +2,11 @@
 import json
 import re
 from verbecc import CompleteConjugator
+from verbecc.config import verbecc_config
 from lemminflect import getInflection
 
 # Initialize verbecc CompleteConjugator engine for Spanish
+verbecc_config.ENABLE_ML_PREDICTION = False
 conjugator_engine = CompleteConjugator(lang='es')
 
 
