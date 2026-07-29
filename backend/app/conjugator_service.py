@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import json
 import re
+import os
+
+# Establecer la variable ANTES de importar verbecc
+os.environ["VERBECC_ENABLE_ML_PREDICTION"] = "False"
+os.environ["ENABLE_ML_PREDICTION"] = "False"
+
 from verbecc import CompleteConjugator
 from lemminflect import getInflection
-import verbecc.src.mlconjug.model_utils as model_utils
-
-# Anulamos la carga de modelos ML para que retorne None al instante
-model_utils.load_model = lambda lang: None
-
 cg = CompleteConjugator(lang="es")
 
 
