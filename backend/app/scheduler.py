@@ -33,8 +33,13 @@ def check_and_send_scheduled_push_reminders():
             due_cards = crud.get_due_cards(db, user_id=user.id)
             count_due = len(due_cards)
 
-            title = "FlashCardApp - Repaso Pendiente" if count_due > 0 else "FlashCardApp"
-            body = f"¡Tienes {count_due} tarjetas pendientes de repasar hoy!" if count_due > 0 else "¡Felicidades! Estás al día con tus repasos."
+            # Only send reminder if user has cards due for review!
+            if count_due == 0:
+                print(f"[SCHEDULER] User {user.email} has 0 cards due at {now_str}. Skipping notification.")
+                continue
+
+            title = "FlashCardApp - Repaso Pendiente"
+            body = f"¡Tienes {count_due} tarjeta(s) pendiente(s) de repasar hoy!"
 
             # 1. SEND EMAIL NOTIFICATION IF CHANNEL IS 'mail' OR 'push_mail'
             if user.notification_channel in ['mail', 'push_mail']:
