@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Card } from '../types/card';
+import { useLanguage } from '../context/LanguageContext';
 import { RotateCw } from 'lucide-react';
 
 interface ReviewCardFlipperProps {
@@ -17,6 +18,7 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
   onRating,
   isSubmitting,
 }) => {
+  const { t } = useLanguage();
   const [isFlipped, setIsFlipped] = useState(false);
 
   const handleFlip = () => {
@@ -33,11 +35,10 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
   return (
     <div className="w-full max-w-md mx-auto space-y-4 animate-fade-in">
       {/* Progress indicator */}
-      <div className="flex items-center justify-between text-xs text-[#7C746A] px-1">
-        <span className="font-bold text-[#2C2621]">
-          Tarjeta {currentIndex + 1} de {totalCards}
+      <div className="flex items-center justify-between text-xs text-[#7C746A] px-1 font-bold">
+        <span>
+          {t('card_progress')} {currentIndex + 1} {t('of_label')} {totalCards}
         </span>
-        <span>Card {currentIndex + 1} of {totalCards}</span>
       </div>
 
       {/* 3D Flip Card Container */}
@@ -50,43 +51,42 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
             isFlipped ? 'rotate-y-180' : ''
           }`}
         >
-          {/* FRONT FACE: Spanish Phrase */}
+          {/* FRONT FACE: English Phrase (Prompt) */}
           <div className="absolute inset-0 w-full h-full bg-white border border-[#E6E0D4] rounded-2xl p-6 shadow-xs backface-hidden flex flex-col justify-between items-center text-center">
             <div className="w-full flex items-center justify-between text-[10px] text-[#A0988C]">
-              <span className="font-semibold text-[#2C2621] uppercase tracking-wider">Español</span>
-              <span>Anverso / Front</span>
+              <span className="font-bold text-[#2C2621] uppercase tracking-wider">{t('english_front_title')}</span>
+              <span>{t('front_label')}</span>
             </div>
 
             <div className="my-auto py-6 space-y-2">
-              <p className="text-xl font-bold text-[#2C2621] leading-relaxed">
-                "{card.text_es}"
+              <p className="text-2xl font-bold text-[#2C2621] leading-relaxed italic">
+                "{card.translation_en}"
               </p>
             </div>
 
             <div className="text-[11px] text-[#7C746A] flex items-center gap-1.5 opacity-80">
               <RotateCw className="w-3.5 h-3.5" />
-              <span>Pulsa para girar / Tap to flip</span>
+              <span>{t('tap_to_flip')}</span>
             </div>
           </div>
 
-          {/* BACK FACE: Translation & Grammar Notes */}
+          {/* BACK FACE: Spanish Answer & Grammar Notes */}
           <div className="absolute inset-0 w-full h-full bg-[#FAF8F5] border border-[#2C2621] rounded-2xl p-6 shadow-md backface-hidden rotate-y-180 flex flex-col justify-between">
             <div className="w-full flex items-center justify-between text-[10px] text-[#7C746A] border-b border-[#E6E0D4] pb-2">
-              <span className="font-bold text-[#2C2621] uppercase tracking-wider">Traducción & Contexto</span>
-              <span>Reverso / Back</span>
+              <span className="font-bold text-[#2C2621] uppercase tracking-wider">{t('spanish_back_title')}</span>
+              <span>{t('back_label')}</span>
             </div>
 
             <div className="my-auto py-3 space-y-3">
               <div>
-                <p className="text-xs font-bold text-[#7C746A]">Inglés / English:</p>
-                <p className="text-lg font-bold text-[#2C2621] italic">
-                  "{card.translation_en}"
+                <p className="text-xl font-bold text-[#2C2621] leading-relaxed">
+                  "{card.text_es}"
                 </p>
               </div>
 
               {card.note && (
                 <div className="bg-white border border-[#E6E0D4] rounded-xl p-2.5 text-xs text-[#5C5549]">
-                  <p className="font-bold text-[#2C2621] text-[10px]">Nota / Note:</p>
+                  <p className="font-bold text-[#2C2621] text-[10px]">{t('note_label')}</p>
                   <p className="mt-0.5">{card.note}</p>
                 </div>
               )}
@@ -103,7 +103,7 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
             </div>
 
             <div className="text-[10px] text-center text-[#7C746A]">
-              Selecciona tu valoración abajo / Rate your recall
+              {t('rate_recall')}
             </div>
           </div>
         </div>
@@ -113,47 +113,43 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
       {isFlipped && (
         <div className="bg-white border border-[#E6E0D4] rounded-2xl p-3 shadow-xs space-y-2 animate-fade-in">
           <p className="text-[11px] font-bold text-center text-[#2C2621]">
-            ¿Qué tal la recordaste? / Rate your recall
+            {t('rate_recall')}
           </p>
           <div className="grid grid-cols-4 gap-2">
-            {/* Rating 0: Otra vez */}
+            {/* Rating 0: Otra vez / Again */}
             <button
               onClick={(e) => handleRatingClick(e, 0)}
               disabled={isSubmitting}
-              className="bg-red-50 border border-red-200 hover:bg-red-100 text-red-900 rounded-xl py-2 px-1 text-center transition flex flex-col items-center justify-center active:scale-95"
+              className="bg-red-50 border border-red-200 hover:bg-red-100 text-red-900 rounded-xl py-2 px-1 text-center transition flex flex-col items-center justify-center cursor-pointer active:scale-95"
             >
-              <span className="text-xs font-bold">Otra vez</span>
-              <span className="text-[9px] opacity-75">Again</span>
+              <span className="text-xs font-bold">{t('rating_again')}</span>
             </button>
 
-            {/* Rating 1: Difícil */}
+            {/* Rating 1: Difícil / Hard */}
             <button
               onClick={(e) => handleRatingClick(e, 1)}
               disabled={isSubmitting}
-              className="bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 rounded-xl py-2 px-1 text-center transition flex flex-col items-center justify-center active:scale-95"
+              className="bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 rounded-xl py-2 px-1 text-center transition flex flex-col items-center justify-center cursor-pointer active:scale-95"
             >
-              <span className="text-xs font-bold">Difícil</span>
-              <span className="text-[9px] opacity-75">Hard</span>
+              <span className="text-xs font-bold">{t('rating_hard')}</span>
             </button>
 
-            {/* Rating 2: Normal */}
+            {/* Rating 2: Normal / Good */}
             <button
               onClick={(e) => handleRatingClick(e, 2)}
               disabled={isSubmitting}
-              className="bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-900 rounded-xl py-2 px-1 text-center transition flex flex-col items-center justify-center active:scale-95"
+              className="bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-900 rounded-xl py-2 px-1 text-center transition flex flex-col items-center justify-center cursor-pointer active:scale-95"
             >
-              <span className="text-xs font-bold">Normal</span>
-              <span className="text-[9px] opacity-75">Normal</span>
+              <span className="text-xs font-bold">{t('rating_good')}</span>
             </button>
 
-            {/* Rating 3: Fácil */}
+            {/* Rating 3: Fácil / Easy */}
             <button
               onClick={(e) => handleRatingClick(e, 3)}
               disabled={isSubmitting}
-              className="bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-900 rounded-xl py-2 px-1 text-center transition flex flex-col items-center justify-center active:scale-95"
+              className="bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-900 rounded-xl py-2 px-1 text-center transition flex flex-col items-center justify-center cursor-pointer active:scale-95"
             >
-              <span className="text-xs font-bold">Fácil</span>
-              <span className="text-[9px] opacity-75">Easy</span>
+              <span className="text-xs font-bold">{t('rating_easy')}</span>
             </button>
           </div>
         </div>

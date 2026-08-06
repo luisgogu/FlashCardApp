@@ -155,7 +155,18 @@ export const translations: Translations = {
 
   // SPELLCHECK & FORM
   spell_suggestions: { es: 'Sugerencias ortográficas:', en: 'Spelling suggestions:' },
-  spell_correction: { es: 'Corrección ortográfica:', en: 'Spelling correction:' }
+  spell_correction: { es: 'Corrección ortográfica:', en: 'Spelling correction:' },
+
+  // REVIEW FLIPPER
+  card_progress: { es: 'Tarjeta', en: 'Card' },
+  of_label: { es: 'de', en: 'of' },
+  front_label: { es: 'Anverso', en: 'Front' },
+  back_label: { es: 'Reverso', en: 'Back' },
+  tap_to_flip: { es: 'Pulsa para girar', en: 'Tap to flip' },
+  rate_recall: { es: '¿Qué tal la recordaste?', en: 'Rate your recall' },
+  english_front_title: { es: 'Inglés (Piensa la traducción)', en: 'English (Recall Spanish translation)' },
+  spanish_back_title: { es: 'Respuesta en Español & Notas', en: 'Spanish Answer & Notes' },
+  note_label: { es: 'Nota:', en: 'Note:' }
 };
 
 interface LanguageContextType {
