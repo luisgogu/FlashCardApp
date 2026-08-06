@@ -29,9 +29,13 @@ Base.metadata.create_all(bind=engine)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Iniciar scheduler y VAPID keys
+    # Startup: Iniciar scheduler, VAPID keys y pre-warm verb conjugator model
     get_or_create_vapid_keys()
     start_scheduler()
+    try:
+        conjugator_service.get_conjugator_engine()
+    except Exception as e:
+        print(f"[Startup Warning] Could not pre-warm conjugator: {e}")
     yield
     # Shutdown
     stop_scheduler()

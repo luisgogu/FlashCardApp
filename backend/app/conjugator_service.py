@@ -3,6 +3,7 @@ import json
 import re
 import os
 from lemminflect import getInflection
+from functools import lru_cache
 
 _conjugator_engine = None
 
@@ -137,6 +138,7 @@ def extract_tenses_from_verbecc(infinitive_es: str):
     }
 
 
+@lru_cache(maxsize=512)
 def get_verb_conjugations(verb_es: str, verb_en: str = ""):
     infinitive_es = extract_infinitive(verb_es)
     en_forms = get_english_forms(verb_en)
