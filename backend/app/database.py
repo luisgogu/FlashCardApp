@@ -3,7 +3,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Support DB_DIR or DATABASE_URL env vars for Cloud Run / persistent volume mounts
-DB_DIR = os.getenv("DB_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+if os.path.exists("/tmp"):
+    DB_DIR = "/tmp"
+else:
+    DB_DIR = os.getenv("DB_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 os.makedirs(DB_DIR, exist_ok=True)
 DB_PATH = os.path.join(DB_DIR, "flashcardapp.db")
 

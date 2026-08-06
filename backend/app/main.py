@@ -19,6 +19,10 @@ from app.auth_service import (
 from app.vapid_service import get_or_create_vapid_keys
 from app.push_service import send_web_push
 from app.scheduler import start_scheduler, stop_scheduler
+from app.gcs_sync import download_db_from_gcs, upload_db_to_gcs
+
+# Download DB from GCS if running on Cloud Run before creating tables
+download_db_from_gcs()
 
 # Create database tables automatically on startup
 Base.metadata.create_all(bind=engine)
@@ -31,6 +35,7 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     stop_scheduler()
+    upload_db_to_gcs()
 
 app = FastAPI(
     title="FlashCardApp API",
@@ -68,6 +73,7 @@ def register_user(
         raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado.")
     
     user = crud.create_user(db=db, user_data=user_data)
+    upload_db_to_gcs()
     access_token = create_access_token(data={"sub": str(user.id)})
     return {
         "access_token": access_token,
@@ -325,6 +331,7 @@ def review_card(
     updated = crud.review_card(db=db, card_id=card_id, rating=review.rating, user_id=current_user.id)
     if not updated:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+    upload_db_to_gcs()
     return updated
 
 
@@ -334,7 +341,9 @@ def create_new_card(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return crud.create_card(db=db, card_data=card, user_id=current_user.id)
+    new_card = crud.create_card(db=db, card_data=card, user_id=current_user.id)
+    upload_db_to_gcs()
+    return new_card
 
 
 @app.get("/api/cards", response_model=List[schemas.CardResponse])
@@ -354,6 +363,7 @@ def delete_all_cards_api(
     db: Session = Depends(get_db)
 ):
     count = crud.delete_all_cards(db=db, user_id=current_user.id)
+    upload_db_to_gcs()
     return {"status": "ok", "message": f"Se han eliminado {count} tarjetas.", "deleted_count": count}
 
 
