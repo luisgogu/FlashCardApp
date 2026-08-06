@@ -29,12 +29,12 @@ export const Header: React.FC<HeaderProps> = ({ cardCount, onOpenAuth }) => {
             <div
               onClick={onOpenAuth}
               title={`${t('logged_in_as')} ${user.name}`}
-              className="cursor-pointer bg-white border border-[#E6E0D4] rounded-full px-2.5 py-1 text-xs text-[#2C2621] font-bold flex items-center gap-1.5 shadow-xs hover:bg-[#FAF8F5] transition"
+              className="cursor-pointer bg-white border border-[#E6E0D4] rounded-full px-2.5 py-1 text-xs text-[#2C2621] font-bold flex items-center gap-1.5 shadow-xs hover:bg-[#FAF8F5] transition min-w-0 max-w-[130px] sm:max-w-[190px]"
             >
               <div className="w-4 h-4 rounded-full bg-[#C86D51] text-white flex items-center justify-center text-[10px] uppercase font-bold shrink-0">
                 {user.name.charAt(0)}
               </div>
-              <span className="text-[11px] whitespace-nowrap">{user.name}</span>
+              <span className="text-[11px] truncate shrink min-w-0">{user.name}</span>
               <span
                 className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-md uppercase shrink-0 ${
                   user.is_admin
