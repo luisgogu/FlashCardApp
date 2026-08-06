@@ -46,6 +46,13 @@ def change_user_password(db: Session, user: User, new_password: str) -> User:
     return user
 
 
+def delete_user_account(db: Session, user: User) -> bool:
+    """Deletes user account and all associated cards via cascade."""
+    db.delete(user)
+    db.commit()
+    return True
+
+
 def update_notification_settings(
     db: Session,
     user: User,

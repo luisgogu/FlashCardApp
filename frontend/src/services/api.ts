@@ -280,4 +280,19 @@ export const api = {
     }
     return res.json();
   },
+
+  /**
+   * Delete current user account permanently.
+   */
+  async deleteAccount(): Promise<{ status: string; message: string }> {
+    const res = await fetch(`${API_BASE_URL}/auth/account`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Error al eliminar la cuenta');
+    }
+    return res.json();
+  },
 };

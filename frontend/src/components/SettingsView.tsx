@@ -20,7 +20,8 @@ import {
   BellOff,
   Send,
   Eye,
-  EyeOff
+  EyeOff,
+  UserX,
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -51,6 +52,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
 
   // Admin & Delete State
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isResettingDebug, setIsResettingDebug] = useState(false);
 
   const showToast = (msg: string) => {
@@ -168,6 +170,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
       alert('Error al eliminar las tarjetas.');
     } finally {
       setIsDeletingAll(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (confirm(t('confirm_delete_account'))) {
+      try {
+        setIsDeletingAccount(true);
+        await api.deleteAccount();
+        logout();
+      } catch (error) {
+        console.error(error);
+        alert(t('generic_error'));
+      } finally {
+        setIsDeletingAccount(false);
+      }
     }
   };
 
@@ -522,6 +539,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
           <div>
             <p className="font-medium text-[#2C2621]">{t('delete_warning_notice')}</p>
           </div>
+        </div>
+
+        <div className="pt-2 border-t border-red-100">
+          <button
+            type="button"
+            onClick={handleDeleteAccount}
+            disabled={isDeletingAccount}
+            className="w-full bg-rose-700 hover:bg-rose-800 disabled:opacity-40 text-white rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+          >
+            {isDeletingAccount ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <UserX className="w-4 h-4" />
+            )}
+            <span>{t('delete_account_btn')}</span>
+          </button>
         </div>
       </div>
 

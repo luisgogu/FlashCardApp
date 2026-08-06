@@ -132,6 +132,18 @@ def change_password_api(
     return {"status": "ok", "message": "Contraseña actualizada con éxito."}
 
 
+@app.delete("/api/auth/account")
+def delete_account_api(
+    background_tasks: BackgroundTasks,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """[AUTH] Elimina definitivamente la cuenta del usuario y todas sus tarjetas."""
+    crud.delete_user_account(db=db, user=current_user)
+    background_tasks.add_task(upload_db_to_gcs)
+    return {"status": "ok", "message": "Cuenta eliminada con éxito."}
+
+
 # ==========================================
 # NOTIFICATION PREFERENCES & EMAIL ENDPOINTS
 # ==========================================

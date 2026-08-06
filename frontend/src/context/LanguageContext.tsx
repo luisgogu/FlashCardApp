@@ -166,7 +166,12 @@ export const translations: Translations = {
   rate_recall: { es: '¿Qué tal la recordaste?', en: 'Rate your recall' },
   english_front_title: { es: 'Inglés (Piensa la traducción)', en: 'English (Recall Spanish translation)' },
   spanish_back_title: { es: 'Respuesta en Español & Notas', en: 'Spanish Answer & Notes' },
-  note_label: { es: 'Nota:', en: 'Note:' }
+  note_label: { es: 'Nota:', en: 'Note:' },
+
+  // ACCOUNT DELETION
+  delete_account_btn: { es: 'Eliminar mi cuenta definitivamente', en: 'Delete my account permanently' },
+  confirm_delete_account: { es: '¿Seguro que deseas eliminar tu cuenta? Esta acción no se puede deshacer y borrará permanentemente todas tus tarjetas.', en: 'Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your cards.' },
+  account_deleted_toast: { es: 'Tu cuenta ha sido eliminada con éxito.', en: 'Your account has been deleted successfully.' }
 };
 
 interface LanguageContextType {
