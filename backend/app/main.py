@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, Query, status
+from fastapi import FastAPI, Depends, HTTPException, Query, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -69,6 +69,7 @@ def read_root():
 @app.post("/api/auth/register", response_model=schemas.TokenResponse, status_code=status.HTTP_201_CREATED)
 def register_user(
     user_data: schemas.UserRegister,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """[AUTH] Registra una nueva cuenta de usuario y devuelve el token JWT."""
@@ -77,7 +78,7 @@ def register_user(
         raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado.")
     
     user = crud.create_user(db=db, user_data=user_data)
-    upload_db_to_gcs()
+    background_tasks.add_task(upload_db_to_gcs)
     access_token = create_access_token(data={"sub": str(user.id)})
     return {
         "access_token": access_token,
@@ -329,24 +330,26 @@ def get_due_cards(
 def review_card(
     card_id: int,
     review: schemas.ReviewRequest,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     updated = crud.review_card(db=db, card_id=card_id, rating=review.rating, user_id=current_user.id)
     if not updated:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
-    upload_db_to_gcs()
+    background_tasks.add_task(upload_db_to_gcs)
     return updated
 
 
 @app.post("/api/cards", response_model=schemas.CardResponse, status_code=status.HTTP_201_CREATED)
 def create_new_card(
     card: schemas.CardCreate,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     new_card = crud.create_card(db=db, card_data=card, user_id=current_user.id)
-    upload_db_to_gcs()
+    background_tasks.add_task(upload_db_to_gcs)
     return new_card
 
 
@@ -363,11 +366,12 @@ def list_cards(
 @app.delete("/api/cards/all")
 @app.delete("/api/cards")
 def delete_all_cards_api(
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     count = crud.delete_all_cards(db=db, user_id=current_user.id)
-    upload_db_to_gcs()
+    background_tasks.add_task(upload_db_to_gcs)
     return {"status": "ok", "message": f"Se han eliminado {count} tarjetas.", "deleted_count": count}
 
 
