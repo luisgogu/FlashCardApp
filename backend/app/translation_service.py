@@ -6,6 +6,20 @@ from spellchecker import SpellChecker
 
 # Initialize Spanish spellchecker
 spell_es = SpellChecker(language='es')
+spell_es.word_frequency.load_words([
+    'ganas', 'tacos', 'taco', 'comer', 'ir', 'estoy', 'tengo', 'hacer', 'decir', 'ver', 'dar',
+    'saber', 'poder', 'querer', 'llegar', 'pasar', 'deber', 'poner', 'parecer', 'quedar',
+    'creer', 'hablar', 'llevar', 'dejar', 'seguir', 'encontrar', 'llamar', 'venir', 'pensar',
+    'salir', 'volver', 'tomar', 'conocer', 'vivir', 'sentir', 'tratar', 'mirar', 'contar',
+    'empezar', 'esperar', 'buscar', 'existir', 'entrar', 'trabajar', 'escribir', 'perder',
+    'producir', 'ocurrir', 'entender', 'pedir', 'recibir', 'recordar', 'terminar', 'permitir',
+    'aparecer', 'conseguir', 'comenzar', 'servir', 'sacar', 'necesitar', 'mantener', 'leer',
+    'caer', 'cambiar', 'presentar', 'crear', 'abrir', 'considerar', 'oír', 'oir', 'ganar',
+    'formar', 'traer', 'partir', 'morir', 'aceptar', 'realizar', 'suponer', 'comprender',
+    'lograr', 'explicar', 'preguntar', 'tocar', 'reconocer', 'estudiar', 'alcanzar', 'nacer',
+    'dirigir', 'correr', 'utilizar', 'pagar', 'ayudar', 'gustar', 'jugar', 'escuchar',
+    'cumplir', 'ofrecer', 'descubrir', 'levantar', 'intentar'
+])
 
 
 def fix_encoding(text: str) -> str:
@@ -34,23 +48,27 @@ def get_top_es_suggestions(text_es: str) -> List[str]:
     if not text_clean or len(text_clean) < 2:
         return []
 
+    words = text_clean.split()
     raw_candidates = []
 
-    # 1. Roundtrip translation candidate (gives full grammar, accents & punctuation)
-    try:
-        translated_en = GoogleTranslator(source='auto', target='en').translate(text_clean)
-        if translated_en and isinstance(translated_en, str):
-            reconstructed_es = GoogleTranslator(source='en', target='es').translate(translated_en)
-            if reconstructed_es and isinstance(reconstructed_es, str):
-                rec_clean = fix_encoding(reconstructed_es.strip())
-                if rec_clean:
-                    raw_candidates.append(rec_clean)
-    except Exception as e:
-        print(f"[Roundtrip Error]: {e}")
+    # Check if words have actual spelling typos
+    has_typos = False
+    for word in words:
+        word_clean = re.sub(r'[^\w]', '', word)
+        if len(word_clean) > 2 and word_clean.lower() not in spell_es:
+            has_typos = True
+            cands = list(spell_es.candidates(word_clean.lower()) or [])
+            for cand in cands[:4]:
+                if word.istitle():
+                    cand = cand.capitalize()
+                elif word.isupper():
+                    cand = cand.upper()
+                replaced = text_clean.replace(word_clean, cand)
+                if replaced not in raw_candidates:
+                    raw_candidates.append(replaced)
 
-    # 2. Compound word split candidate (e.g. "puedir" -> "puedo ir", "comoestas" -> "cómo estás")
-    words = text_clean.split()
-    if len(words) == 1 and len(text_clean) >= 5:
+    # 1. Compound word split candidate (e.g. "puedir" -> "puedo ir") - ONLY if word is NOT in spell_es
+    if len(words) == 1 and len(text_clean) >= 5 and text_clean.lower() not in spell_es:
         w = text_clean.lower()
         for i in range(3, len(w) - 1):
             left, right = w[:i], w[i:]
@@ -61,18 +79,18 @@ def get_top_es_suggestions(text_es: str) -> List[str]:
                 if comp not in raw_candidates:
                     raw_candidates.append(comp)
 
-    # 3. Spellchecker candidates for individual words
-    for word in words:
-        if len(word) > 2 and word.lower() not in spell_es:
-            cands = list(spell_es.candidates(word.lower()) or [])
-            for cand in cands[:4]:
-                if word.istitle():
-                    cand = cand.capitalize()
-                elif word.isupper():
-                    cand = cand.upper()
-                replaced = text_clean.replace(word, cand)
-                if replaced not in raw_candidates:
-                    raw_candidates.append(replaced)
+    # 2. Roundtrip translation candidate (gives full grammar & accents) ONLY if typos exist
+    if has_typos:
+        try:
+            translated_en = GoogleTranslator(source='es', target='en').translate(text_clean)
+            if translated_en and isinstance(translated_en, str):
+                reconstructed_es = GoogleTranslator(source='en', target='es').translate(translated_en)
+                if reconstructed_es and isinstance(reconstructed_es, str):
+                    rec_clean = fix_encoding(reconstructed_es.strip())
+                    if rec_clean and rec_clean.lower() != text_clean.lower():
+                        raw_candidates.append(rec_clean)
+        except Exception as e:
+            print(f"[Roundtrip Error]: {e}")
 
     # Clean, deduplicate while preserving order, max 3
     final_sugs = []
@@ -102,7 +120,7 @@ def suggest_translation_and_correction(text_es: str):
 
     try:
         if len(clean_text) >= 2:
-            translated_en = GoogleTranslator(source='auto', target='en').translate(clean_text)
+            translated_en = GoogleTranslator(source='es', target='en').translate(clean_text)
             if translated_en and isinstance(translated_en, str):
                 translation_en = fix_encoding(translated_en.strip())
     except Exception as e:
