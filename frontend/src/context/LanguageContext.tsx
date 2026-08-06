@@ -47,7 +47,7 @@ export const translations: Translations = {
   submit_modal_register: { es: 'Registrarse', en: 'Sign Up' },
   name_required_err: { es: 'Por favor, ingresa tu nombre', en: 'Please enter your name' },
   generic_error: { es: 'Ocurrió un error al procesar tu solicitud', en: 'An error occurred while processing your request' },
-  footer_dev_note: { es: 'Desarrollada con cariño por Luis González 👨‍💻❤️', en: 'Made with love by Luis González 👨‍💻❤️' },
+  footer_dev_note: { es: 'Desarrollada por Luis González 👨‍💻', en: 'Made by Luis González 👨‍💻' },
 
   // ADD CARD FORM
   add_card_title: { es: 'Crear tarjeta', en: 'Create flashcard' },
