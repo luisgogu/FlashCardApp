@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageToggle } from './LanguageToggle';
 import { User, Lock, Mail, Loader2, Sparkles, Layers } from 'lucide-react';
 
 export const AuthScreen: React.FC = () => {
   const { login, register } = useAuth();
+  const { t } = useLanguage();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,28 +24,34 @@ export const AuthScreen: React.FC = () => {
         await login(email, password);
       } else {
         if (!name.trim()) {
-          throw new Error('Por favor, ingresa tu nombre');
+          throw new Error(t('name_required_err'));
         }
         await register(email, password, name);
       }
     } catch (err: any) {
-      setError(err.message || 'Ocurrió un error al procesar tu solicitud');
+      setError(err.message || t('generic_error'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#2C2621] flex flex-col justify-center items-center p-4 antialiased selection:bg-[#2C2621] selection:text-white">
-      <div className="w-full max-w-sm space-y-6">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#2C2621] flex flex-col justify-between items-center p-4 antialiased selection:bg-[#2C2621] selection:text-white relative">
+      {/* TOP HEADER WITH LANGUAGE TOGGLE SLIDER */}
+      <header className="w-full max-w-sm flex items-center justify-between pt-2 pb-4">
+        <span className="text-xs font-bold text-[#7C746A] tracking-wider uppercase">FlashCardApp</span>
+        <LanguageToggle size="sm" />
+      </header>
+
+      <div className="w-full max-w-sm space-y-6 my-auto">
         {/* APP BRANDING LOGO */}
         <div className="text-center space-y-3">
           <div className="w-16 h-16 bg-[#2C2621] text-[#FAF8F5] rounded-3xl mx-auto flex items-center justify-center shadow-lg border border-[#3C352E]">
             <Layers className="w-8 h-8 text-[#C86D51]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#2C2621] tracking-tight">FlashCardApp</h1>
-            <p className="text-xs text-[#7C746A] mt-1">Aprende y repasa vocabulario en contexto</p>
+            <h1 className="text-2xl font-bold text-[#2C2621] tracking-tight">{t('app_title')}</h1>
+            <p className="text-xs text-[#7C746A] mt-1">{t('app_subtitle')}</p>
           </div>
         </div>
 
@@ -59,7 +68,7 @@ export const AuthScreen: React.FC = () => {
                   : 'text-[#7C746A] hover:text-[#2C2621]'
               }`}
             >
-              Iniciar Sesión
+              {t('sign_in_tab')}
             </button>
             <button
               type="button"
@@ -70,17 +79,15 @@ export const AuthScreen: React.FC = () => {
                   : 'text-[#7C746A] hover:text-[#2C2621]'
               }`}
             >
-              Crear Cuenta
+              {t('sign_up_tab')}
             </button>
           </div>
 
           <h2 className="text-base font-bold text-[#2C2621] mb-1">
-            {mode === 'login' ? '¡Bienvenido de nuevo!' : 'Crea tu cuenta'}
+            {mode === 'login' ? t('welcome_back') : t('create_account')}
           </h2>
           <p className="text-xs text-[#7C746A] mb-5">
-            {mode === 'login'
-              ? 'Ingresa tus credenciales para acceder a tus tarjetas.'
-              : 'Empieza a guardar tus frases y repasar con repetición espaciada.'}
+            {mode === 'login' ? t('sub_login') : t('sub_register')}
           </p>
 
           {error && (
@@ -92,13 +99,13 @@ export const AuthScreen: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <div>
-                <label className="block text-xs font-bold text-[#2C2621] mb-1">Nombre / Name</label>
+                <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('name_label')}</label>
                 <div className="relative">
                   <User className="w-4 h-4 text-[#7C746A] absolute left-3.5 top-3" />
                   <input
                     type="text"
                     required
-                    placeholder="Tu nombre o apodo"
+                    placeholder={t('name_placeholder')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl pl-10 pr-3 py-2.5 text-xs text-[#2C2621] placeholder-[#A0988E] focus:outline-none focus:ring-2 focus:ring-[#C86D51]/30 focus:border-[#C86D51]"
@@ -108,13 +115,13 @@ export const AuthScreen: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-xs font-bold text-[#2C2621] mb-1">Correo Electrónico / Email</label>
+              <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('email_label')}</label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-[#7C746A] absolute left-3.5 top-3" />
                 <input
                   type="email"
                   required
-                  placeholder="ejemplo@correo.com"
+                  placeholder={t('email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl pl-10 pr-3 py-2.5 text-xs text-[#2C2621] placeholder-[#A0988E] focus:outline-none focus:ring-2 focus:ring-[#C86D51]/30 focus:border-[#C86D51]"
@@ -123,13 +130,13 @@ export const AuthScreen: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#2C2621] mb-1">Contraseña / Password</label>
+              <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('password_label')}</label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[#7C746A] absolute left-3.5 top-3" />
                 <input
                   type="password"
                   required
-                  placeholder="••••••••"
+                  placeholder={t('password_placeholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl pl-10 pr-3 py-2.5 text-xs text-[#2C2621] placeholder-[#A0988E] focus:outline-none focus:ring-2 focus:ring-[#C86D51]/30 focus:border-[#C86D51]"
@@ -140,12 +147,12 @@ export const AuthScreen: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#2C2621] hover:bg-[#1A1613] text-[#FAF8F5] font-bold rounded-xl py-3 text-xs transition shadow-md flex items-center justify-center gap-2 mt-3"
+              className="w-full bg-[#2C2621] hover:bg-[#1A1613] text-[#FAF8F5] font-bold rounded-xl py-3 text-xs transition shadow-md flex items-center justify-center gap-2 mt-3 cursor-pointer"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
               ) : (
-                <span>{mode === 'login' ? 'Acceder a mi cuenta' : 'Crear Cuenta'}</span>
+                <span>{mode === 'login' ? t('submit_login') : t('submit_register')}</span>
               )}
             </button>
           </form>
@@ -154,10 +161,15 @@ export const AuthScreen: React.FC = () => {
         <div className="text-center text-[11px] text-[#A0988E] space-y-1">
           <p className="flex items-center justify-center gap-1">
             <Sparkles className="w-3.5 h-3.5 text-[#C86D51]" />
-            <span>Desarrollada con cariño por Luis González 👨‍💻❤️</span>
+            <span>{t('footer_dev_note')}</span>
           </p>
         </div>
       </div>
+
+      <footer className="py-2 text-[10px] text-[#A0988E]">
+        © {new Date().getFullYear()} FlashCardApp
+      </footer>
     </div>
   );
 };
+

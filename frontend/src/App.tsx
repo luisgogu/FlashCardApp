@@ -9,12 +9,14 @@ import { SettingsView } from './components/SettingsView';
 import { EditCardModal } from './components/EditCardModal';
 import { AuthScreen } from './components/AuthScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { api } from './services/api';
 import type { Card } from './types/card';
 import { Loader2 } from 'lucide-react';
 
 function AppContent() {
   const { user, isLoading: isAuthLoading } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>('add');
   const [cards, setCards] = useState<Card[]>([]);
   const [dueCardsCount, setDueCardsCount] = useState(0);
@@ -47,7 +49,7 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-4">
         <Loader2 className="w-8 h-8 animate-spin text-[#C86D51] mb-2" />
-        <p className="text-xs text-[#7C746A] font-medium">Cargando FlashCardApp...</p>
+        <p className="text-xs text-[#7C746A] font-medium">{t('loading_app')}</p>
       </div>
     );
   }
@@ -132,9 +134,11 @@ function AppContent() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

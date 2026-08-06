@@ -8,17 +8,26 @@ Esta guía explica cómo publicar **FlashCardApp** en la nube de forma **100% gr
 
 Google Cloud Run incluye **2 millones de peticiones gratis al mes para siempre (Always Free)**. A diferencia de Render, el arranque de Cloud Run en Python toma solo 1-2 segundos.
 
-### Pasos en Google Cloud Shell:
+### Pasos en Google Cloud Shell (Con Almacenamiento Persistente SQLite - us-east1):
 1. En la consola de Google Cloud ([console.cloud.google.com](https://console.cloud.google.com)), activa **Cloud Shell** (icono `>_` arriba a la derecha).
-2. Ejecuta los siguientes comandos:
+2. Crea un bucket de almacenamiento gratuito para guardar la base de datos de forma permanente en la región `us-east1`:
+   ```bash
+   gcloud storage buckets create gs://flashcardapp-db-bucket --location=us-east1
+   ```
+3. Clona y despliega el backend vinculando el volumen persistente:
+   ```bash
+   git clone https://github.com/luisgogu/FlashCardApp.git
+   cd FlashCardApp/backend
+   gcloud run deploy flashcardapp-backend \
+     --source . \
+     --region us-east1 \
+     --add-volume name=db-volume,type=cloud-storage,bucket=flashcardapp-db-bucket \
+     --mount-volume mount-path=/mnt/db,volume=db-volume \
+     --set-env-vars DB_DIR=/mnt/db \
+     --allow-unauthenticated
+   ```
 
-```bash
-git clone https://github.com/luisgogu/FlashCardApp.git
-cd FlashCardApp/backend
-gcloud run deploy flashcardapp-backend --source . --region europe-west1 --allow-unauthenticated
-```
-
-3. Te devolverá una URL HTTPS propia (ejemplo: `https://flashcardapp-backend-xyz-ew.a.run.app`).
+4. Te devolverá una URL HTTPS propia (ejemplo: `https://flashcardapp-backend-xyz-ue.a.run.app`).
 
 ---
 

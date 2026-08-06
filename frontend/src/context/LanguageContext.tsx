@@ -12,6 +12,8 @@ interface Translations {
 export const translations: Translations = {
   // HEADER & NAVBAR
   app_title: { es: 'FlashCardApp', en: 'FlashCardApp' },
+  app_subtitle: { es: 'Aprende y repasa vocabulario en contexto', en: 'Learn and review vocabulary in context' },
+  loading_app: { es: 'Cargando FlashCardApp...', en: 'Loading FlashCardApp...' },
   tab_add: { es: 'Añadir', en: 'Add' },
   tab_review: { es: 'Repaso', en: 'Review' },
   tab_glossary: { es: 'Glosario', en: 'Glossary' },
@@ -19,14 +21,20 @@ export const translations: Translations = {
   cards_count: { es: 'tarjetas', en: 'cards' },
   log_in: { es: 'Acceder', en: 'Log In' },
   log_out: { es: 'Salir', en: 'Log Out' },
+  logged_in_as: { es: 'Sesión iniciada como', en: 'Logged in as' },
+  student_role: { es: 'Estudiante', en: 'Student' },
+  admin_role: { es: 'Admin', en: 'Admin' },
 
-  // AUTH SCREEN
+  // AUTH SCREEN & AUTH MODAL
   welcome_back: { es: '¡Bienvenido de nuevo!', en: 'Welcome back!' },
   create_account: { es: 'Crea tu cuenta', en: 'Create your account' },
   sign_in_tab: { es: 'Iniciar Sesión', en: 'Log In' },
   sign_up_tab: { es: 'Crear Cuenta', en: 'Sign Up' },
   sub_login: { es: 'Ingresa tus credenciales para acceder a tus tarjetas.', en: 'Enter your credentials to access your cards.' },
   sub_register: { es: 'Empieza a guardar tus frases y repasar con repetición espaciada.', en: 'Start saving your phrases and reviewing with spaced repetition.' },
+  modal_welcome: { es: '¡Hola de nuevo!', en: 'Hello again!' },
+  modal_sub_login: { es: 'Ingresa para acceder a tu colección personal de tarjetas.', en: 'Log in to access your personal card collection.' },
+  modal_sub_register: { es: 'Guarda tus propias frases y sincroniza tus repasos.', en: 'Save your own phrases and sync your reviews.' },
   name_label: { es: 'Nombre', en: 'Name' },
   name_placeholder: { es: 'Tu nombre o apodo', en: 'Your name or nickname' },
   email_label: { es: 'Correo Electrónico', en: 'Email Address' },
@@ -35,6 +43,10 @@ export const translations: Translations = {
   password_placeholder: { es: '••••••••', en: '••••••••' },
   submit_login: { es: 'Acceder a mi cuenta', en: 'Log in to my account' },
   submit_register: { es: 'Crear Cuenta', en: 'Create Account' },
+  submit_modal_login: { es: 'Entrar', en: 'Log In' },
+  submit_modal_register: { es: 'Registrarse', en: 'Sign Up' },
+  name_required_err: { es: 'Por favor, ingresa tu nombre', en: 'Please enter your name' },
+  generic_error: { es: 'Ocurrió un error al procesar tu solicitud', en: 'An error occurred while processing your request' },
   footer_dev_note: { es: 'Desarrollada con cariño por Luis González 👨‍💻❤️', en: 'Made with love by Luis González 👨‍💻❤️' },
 
   // SETTINGS VIEW

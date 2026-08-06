@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import List, Optional
@@ -6,11 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app.database import engine, Base, get_db
+from app.database import SessionLocal, engine, Base, get_db
 from app import models, schemas, crud, conjugator_service, translation_service
 from app.auth_service import (
     create_access_token,
     verify_password,
+    hash_password,
     get_current_user,
     get_current_user_optional
 )

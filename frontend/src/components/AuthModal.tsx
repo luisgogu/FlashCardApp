@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { User, Lock, Mail, Loader2, X } from 'lucide-react';
 
 interface AuthModalProps {
@@ -10,6 +11,7 @@ interface AuthModalProps {
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const { login, register } = useAuth();
+  const { t } = useLanguage();
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,13 +31,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
         await login(email, password);
       } else {
         if (!name.trim()) {
-          throw new Error('Por favor, ingresa tu nombre');
+          throw new Error(t('name_required_err'));
         }
         await register(email, password, name);
       }
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Ocurrió un error');
+      setError(err.message || t('generic_error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -62,7 +64,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                 : 'text-[#7C746A] hover:text-[#2C2621]'
             }`}
           >
-            Iniciar Sesión
+            {t('sign_in_tab')}
           </button>
           <button
             type="button"
@@ -73,17 +75,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                 : 'text-[#7C746A] hover:text-[#2C2621]'
             }`}
           >
-            Crear Cuenta
+            {t('sign_up_tab')}
           </button>
         </div>
 
         <h2 className="text-lg font-bold text-[#2C2621] mb-1">
-          {mode === 'login' ? '¡Hola de nuevo!' : 'Crea tu cuenta'}
+          {mode === 'login' ? t('modal_welcome') : t('create_account')}
         </h2>
         <p className="text-xs text-[#7C746A] mb-5">
-          {mode === 'login'
-            ? 'Ingresa para acceder a tu colección personal de tarjetas.'
-            : 'Guarda tus propias frases y sincroniza tus repasos.'}
+          {mode === 'login' ? t('modal_sub_login') : t('modal_sub_register')}
         </p>
 
         {error && (
@@ -95,13 +95,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <div>
-              <label className="block text-xs font-bold text-[#2C2621] mb-1">Nombre</label>
+              <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('name_label')}</label>
               <div className="relative">
                 <User className="w-4 h-4 text-[#7C746A] absolute left-3 top-3" />
                 <input
                   type="text"
                   required
-                  placeholder="Tu nombre o apodo"
+                  placeholder={t('name_placeholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full bg-white border border-[#E6E0D4] rounded-xl pl-9 pr-3 py-2 text-xs text-[#2C2621] placeholder-[#A0988E] focus:outline-none focus:ring-2 focus:ring-[#C86D51]/30 focus:border-[#C86D51]"
@@ -111,13 +111,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           )}
 
           <div>
-            <label className="block text-xs font-bold text-[#2C2621] mb-1">Correo Electrónico</label>
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('email_label')}</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-[#7C746A] absolute left-3 top-3" />
               <input
                 type="email"
                 required
-                placeholder="ejemplo@correo.com"
+                placeholder={t('email_placeholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-white border border-[#E6E0D4] rounded-xl pl-9 pr-3 py-2 text-xs text-[#2C2621] placeholder-[#A0988E] focus:outline-none focus:ring-2 focus:ring-[#C86D51]/30 focus:border-[#C86D51]"
@@ -126,13 +126,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#2C2621] mb-1">Contraseña</label>
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('password_label')}</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-[#7C746A] absolute left-3 top-3" />
               <input
                 type="password"
                 required
-                placeholder="••••••••"
+                placeholder={t('password_placeholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-white border border-[#E6E0D4] rounded-xl pl-9 pr-3 py-2 text-xs text-[#2C2621] placeholder-[#A0988E] focus:outline-none focus:ring-2 focus:ring-[#C86D51]/30 focus:border-[#C86D51]"
@@ -143,12 +143,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[#2C2621] hover:bg-[#1A1613] text-[#FAF8F5] font-bold rounded-xl py-2.5 text-xs transition shadow-md flex items-center justify-center gap-2 mt-2"
+            className="w-full bg-[#2C2621] hover:bg-[#1A1613] text-[#FAF8F5] font-bold rounded-xl py-2.5 text-xs transition shadow-md flex items-center justify-center gap-2 mt-2 cursor-pointer"
           >
             {isSubmitting ? (
               <Loader2 className="w-4 h-4 animate-spin text-white" />
             ) : (
-              <span>{mode === 'login' ? 'Entrar' : 'Registrarse'}</span>
+              <span>{mode === 'login' ? t('submit_modal_login') : t('submit_modal_register')}</span>
             )}
           </button>
         </form>
@@ -156,3 +156,4 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
     </div>
   );
 };
+
