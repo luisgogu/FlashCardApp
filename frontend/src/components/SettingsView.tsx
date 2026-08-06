@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { subscribeToPushNotifications, sendTestPushNotification } from '../services/pushService';
 import {
   Trash2,
@@ -31,6 +32,7 @@ export type NotificationChannel = 'off' | 'push' | 'mail' | 'push_mail';
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onRefresh }) => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Password Change State
@@ -81,7 +83,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
       const reminder_enabled = channel !== 'off';
       const notification_channel = channel;
 
-      // If Push is enabled in the selection, register push subscription in browser
       if (channel === 'push' || channel === 'push_mail') {
         try {
           await subscribeToPushNotifications(reminderTime);
@@ -96,7 +97,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
         notification_channel
       });
 
-      showToast('¡Preferencias de notificación guardadas!');
+      showToast(t('save_notification_prefs'));
     } catch (err: any) {
       alert(err.message || 'Error al guardar las preferencias de notificación.');
     } finally {
@@ -109,10 +110,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
     if (!user) return;
     try {
       setIsTestingPush(true);
-      // Ensure current browser device is subscribed to Push first
       await subscribeToPushNotifications(reminderTime);
       const sentCount = await sendTestPushNotification();
-      showToast(`¡Notificación de prueba enviada! (${sentCount} dispositivo)`);
+      showToast(`Push OK! (${sentCount})`);
     } catch (err: any) {
       alert(err.message || 'Error enviando la notificación de prueba Push.');
     } finally {
@@ -126,7 +126,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
     try {
       setIsTestingEmail(true);
       const res = await api.sendTestEmail();
-      showToast(res.message || '¡Correo de prueba enviado!');
+      showToast(res.message || 'Email OK!');
     } catch (err: any) {
       alert(err.message || 'Error enviando el correo de prueba.');
     } finally {
@@ -141,7 +141,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
     try {
       setIsSubmittingPassword(true);
       await api.changePassword(currentPassword, newPassword);
-      showToast('¡Contraseña actualizada con éxito!');
+      showToast(t('update_password_btn'));
       setCurrentPassword('');
       setNewPassword('');
       setIsChangingPassword(false);
@@ -154,20 +154,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
 
   const handleDeleteAllCards = async () => {
     const firstConfirm = confirm(
-      '⚠️ ATENCIÓN / WARNING: ¿Estás seguro de que deseas eliminar TODAS las tarjetas de tu biblioteca?\n\nEsta acción NO se puede deshacer.'
+      '⚠️ ' + t('delete_warning_notice')
     );
     if (!firstConfirm) return;
-
-    const secondConfirm = confirm(
-      '🚨 CONFIRMACIÓN FINAL / FINAL CONFIRMATION: Se borrarán permanentemente tus tarjetas y tu progreso de estudio. ¿Proceder?'
-    );
-
-    if (!secondConfirm) return;
 
     try {
       setIsDeletingAll(true);
       const res = await api.deleteAllCards();
-      showToast(`¡Biblioteca borrada! Se eliminaron ${res.deleted_count} tarjetas.`);
+      showToast(`(${res.deleted_count})`);
       onRefresh();
     } catch (error) {
       console.error(error);
@@ -178,11 +172,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
   };
 
   const handleResetDebug = async () => {
-    if (confirm('[DEBUG] ¿Restablecer las fechas de repaso de tus tarjetas a "hoy"?')) {
+    if (confirm('[DEBUG] SRS reset?')) {
       try {
         setIsResettingDebug(true);
         const res = await api.resetSrsDebug();
-        showToast(`[DEBUG] Se reseteó el repaso de ${res.reset_count} tarjetas.`);
+        showToast(`[DEBUG] (${res.reset_count})`);
         onRefresh();
       } catch (error) {
         console.error(error);
@@ -234,11 +228,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
           {user && (
             <button
               onClick={logout}
-              title="Cerrar sesión / Log Out"
-              className="p-2 text-rose-700 hover:bg-rose-50 rounded-xl transition border border-rose-200 flex items-center gap-1 text-xs font-bold"
+              className="p-2 text-rose-700 hover:bg-rose-50 rounded-xl transition border border-rose-200 flex items-center gap-1 text-xs font-bold cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
-              <span>Salir</span>
+              <span>{t('logout_btn')}</span>
             </button>
           )}
         </div>
@@ -248,16 +241,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
           <button
             type="button"
             onClick={() => setIsChangingPassword(!isChangingPassword)}
-            className="text-xs font-bold text-[#2C2621] hover:text-[#C86D51] transition flex items-center gap-1.5"
+            className="text-xs font-bold text-[#2C2621] hover:text-[#C86D51] transition flex items-center gap-1.5 cursor-pointer"
           >
             <KeyRound className="w-3.5 h-3.5 text-[#C86D51]" />
-            <span>{isChangingPassword ? 'Cancelar cambio de contraseña' : 'Cambiar contraseña'}</span>
+            <span>{isChangingPassword ? t('cancel_change_password') : t('change_password_btn')}</span>
           </button>
 
           {isChangingPassword && (
             <form onSubmit={handleChangePasswordSubmit} className="mt-3 space-y-3 bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl p-3 animate-fade-in">
               <div>
-                <label className="block text-[11px] font-bold text-[#2C2621] mb-1">Contraseña actual</label>
+                <label className="block text-[11px] font-bold text-[#2C2621] mb-1">{t('current_password_label')}</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -278,13 +271,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#2C2621] mb-1">Nueva contraseña</label>
+                <label className="block text-[11px] font-bold text-[#2C2621] mb-1">{t('new_password_label')}</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     minLength={4}
-                    placeholder="Mínimo 4 caracteres"
+                    placeholder={t('min_chars')}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full bg-white border border-[#E6E0D4] rounded-lg pl-3 pr-8 py-1.5 text-xs text-[#2C2621] focus:outline-none focus:border-[#C86D51]"
@@ -302,14 +295,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
               <button
                 type="submit"
                 disabled={isSubmittingPassword}
-                className="w-full bg-[#2C2621] hover:bg-[#1A1613] text-white rounded-lg py-2 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                className="w-full bg-[#2C2621] hover:bg-[#1A1613] text-white rounded-lg py-2 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {isSubmittingPassword ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <KeyRound className="w-3.5 h-3.5" />
                 )}
-                <span>Actualizar contraseña</span>
+                <span>{t('update_password_btn')}</span>
               </button>
             </form>
           )}
@@ -321,8 +314,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
         <div className="flex items-center gap-2 text-[#2C2621]">
           <Bell className="w-4 h-4 text-[#C86D51] shrink-0" />
           <div>
-            <h3 className="text-xs font-bold leading-tight">Canal de notificaciones</h3>
-            <p className="text-[10px] text-[#7C746A] leading-none">Notification channel selector</p>
+            <h3 className="text-xs font-bold leading-tight">{t('notification_channel_title')}</h3>
           </div>
         </div>
 
@@ -346,9 +338,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
               </div>
             </div>
             <div>
-              <span className="block text-xs font-bold">Desactivado</span>
+              <span className="block text-xs font-bold">{t('channel_off')}</span>
               <span className={`block text-[9px] ${channel === 'off' ? 'opacity-80' : 'text-[#7C746A]'}`}>
-                Off / Sin avisos
+                {t('channel_off_sub')}
               </span>
             </div>
           </div>
@@ -371,9 +363,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
               </div>
             </div>
             <div>
-              <span className="block text-xs font-bold">Push</span>
+              <span className="block text-xs font-bold">{t('channel_push')}</span>
               <span className={`block text-[9px] ${channel === 'push' ? 'opacity-80' : 'text-[#7C746A]'}`}>
-                Sólo en dispositivo
+                {t('channel_push_sub')}
               </span>
             </div>
           </div>
@@ -396,9 +388,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
               </div>
             </div>
             <div>
-              <span className="block text-xs font-bold">Mail</span>
+              <span className="block text-xs font-bold">{t('channel_mail')}</span>
               <span className={`block text-[9px] ${channel === 'mail' ? 'opacity-80' : 'text-[#7C746A]'}`}>
-                Por correo electrónico
+                {t('channel_mail_sub')}
               </span>
             </div>
           </div>
@@ -424,9 +416,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
               </div>
             </div>
             <div>
-              <span className="block text-xs font-bold">Push & Mail</span>
+              <span className="block text-xs font-bold">{t('channel_push_mail')}</span>
               <span className={`block text-[9px] ${channel === 'push_mail' ? 'opacity-80' : 'text-[#7C746A]'}`}>
-                Ambos canales
+                {t('channel_push_mail_sub')}
               </span>
             </div>
           </div>
@@ -438,7 +430,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
             <div className="flex-1 bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl px-3 py-2 flex items-center justify-between">
               <span className="text-xs text-[#7C746A] font-medium flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-[#2C2621]" />
-                <span>Hora del aviso:</span>
+                <span>{t('reminder_time_label')}</span>
               </span>
               <input
                 type="time"
@@ -454,14 +446,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
           type="button"
           onClick={handleSaveNotificationSettings}
           disabled={isSavingSettings}
-          className="w-full bg-[#2C2621] hover:bg-[#1A1613] text-white rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs mt-2"
+          className="w-full bg-[#2C2621] hover:bg-[#1A1613] text-white rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs mt-2 cursor-pointer"
         >
           {isSavingSettings ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           )}
-          <span>Guardar preferencias de notificación</span>
+          <span>{t('save_notification_prefs')}</span>
         </button>
 
         {/* TEST BUTTONS */}
@@ -470,28 +462,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
             type="button"
             onClick={handleTestPush}
             disabled={isTestingPush}
-            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5"
+            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
             {isTestingPush ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2C2621]" />
             ) : (
               <Bell className="w-3.5 h-3.5 text-[#C86D51]" />
             )}
-            <span>Probar Push</span>
+            <span>{t('test_push_btn')}</span>
           </button>
 
           <button
             type="button"
             onClick={handleTestEmail}
             disabled={isTestingEmail}
-            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5"
+            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
             {isTestingEmail ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2C2621]" />
             ) : (
               <Send className="w-3.5 h-3.5 text-sky-600" />
             )}
-            <span>Probar Email</span>
+            <span>{t('test_email_btn')}</span>
           </button>
         </div>
       </div>
@@ -501,17 +493,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
         <div className="flex items-center gap-1.5 text-red-700">
           <ShieldAlert className="w-4 h-4 text-red-600 shrink-0" />
           <div>
-            <h3 className="text-xs font-bold leading-tight">Zona de peligro</h3>
-            <p className="text-[10px] text-red-500 leading-none">Danger zone</p>
+            <h3 className="text-xs font-bold leading-tight">{t('danger_zone_title')}</h3>
           </div>
         </div>
 
         <div className="space-y-0.5">
           <p className="text-xs text-[#5C5549]">
-            Actualmente tienes <span className="font-bold text-[#2C2621]">{totalCardsCount} tarjetas</span> guardadas en tu biblioteca.
-          </p>
-          <p className="text-[11px] text-[#8C8479]">
-            You currently have <span className="font-bold text-[#2C2621]">{totalCardsCount} cards</span> saved in your library.
+            ({totalCardsCount} {t('cards_count')})
           </p>
         </div>
 
@@ -519,21 +507,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
           type="button"
           onClick={handleDeleteAllCards}
           disabled={isDeletingAll || totalCardsCount === 0}
-          className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs"
+          className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
         >
           {isDeletingAll ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <Trash2 className="w-4 h-4" />
           )}
-          <span>Eliminar todas mis tarjetas ({totalCardsCount})</span>
+          <span>{t('delete_all_cards_btn')} ({totalCardsCount})</span>
         </button>
 
         <div className="flex items-start gap-1.5 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 p-2.5 rounded-xl">
           <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-[#2C2621]">Al eliminar las tarjetas se borrarán permanentemente sus datos y progreso.</p>
-            <p className="text-[10px] text-amber-900/70 font-normal">Deleting cards will permanently remove their data and study progress.</p>
+            <p className="font-medium text-[#2C2621]">{t('delete_warning_notice')}</p>
           </div>
         </div>
       </div>
@@ -544,8 +531,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
           <div className="flex items-center gap-1.5 text-[#2C2621]">
             <Bug className="w-4 h-4 text-amber-600 shrink-0" />
             <div>
-              <h3 className="text-xs font-bold leading-tight">Herramientas de administrador</h3>
-              <p className="text-[10px] text-[#7C746A] leading-none">Admin & dev tools</p>
+              <h3 className="text-xs font-bold leading-tight">{t('admin_tools_title')}</h3>
             </div>
           </div>
 
@@ -553,14 +539,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
             type="button"
             onClick={handleResetDebug}
             disabled={isResettingDebug || totalCardsCount === 0}
-            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-2"
+            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
           >
             {isResettingDebug ? (
               <Loader2 className="w-4 h-4 animate-spin text-[#2C2621]" />
             ) : (
               <Bug className="w-4 h-4 text-amber-600" />
             )}
-            <span>Resetear repasos SRS (Dev Debug)</span>
+            <span>{t('reset_srs_btn')}</span>
           </button>
         </div>
       )}
@@ -573,19 +559,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
         </div>
         <div className="text-[11px] text-[#7C746A] space-y-1 pt-1 border-t border-[#F0EBE1]">
           <div className="flex justify-between">
-            <span>Versión / Version:</span>
-            <span className="font-mono text-[#2C2621]">1.0.0 (Fase 6 Push & Auth)</span>
+            <span>{t('app_info_version')}</span>
+            <span className="font-mono text-[#2C2621]">1.0.0</span>
           </div>
           <div className="flex justify-between">
-            <span>Base de datos / DB:</span>
-            <span className="font-mono text-[#2C2621]">SQLite (flashcardapp.db)</span>
+            <span>{t('app_info_db')}</span>
+            <span className="font-mono text-[#2C2621]">SQLite</span>
           </div>
           <div className="flex justify-between">
-            <span>Notificaciones / Push:</span>
-            <span className="font-mono text-[#2C2621]">Web Push, Email & APScheduler</span>
+            <span>{t('app_info_push')}</span>
+            <span className="font-mono text-[#2C2621]">Web Push & Mail</span>
           </div>
           <div className="flex justify-between">
-            <span>Creador & Desarrollador:</span>
+            <span>{t('app_info_creator')}</span>
             <span className="font-mono text-[#2C2621]">Luis González 👨‍💻</span>
           </div>
         </div>

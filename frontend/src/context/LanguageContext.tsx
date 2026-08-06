@@ -49,31 +49,6 @@ export const translations: Translations = {
   generic_error: { es: 'Ocurrió un error al procesar tu solicitud', en: 'An error occurred while processing your request' },
   footer_dev_note: { es: 'Desarrollada con cariño por Luis González 👨‍💻❤️', en: 'Made with love by Luis González 👨‍💻❤️' },
 
-  // SETTINGS VIEW
-  daily_reminder_title: { es: 'Recordatorio Diario de Repaso (Push)', en: 'Daily Review Reminder (Push)' },
-  daily_reminder_desc: {
-    es: 'Recibe un aviso diario en tu pantalla de inicio indicando cuántas tarjetas tienes listas para repasar.',
-    en: 'Receive a daily reminder on your home screen showing how many cards are due for review.'
-  },
-  time_label: { es: 'Hora del aviso:', en: 'Reminder time:' },
-  save_time: { es: 'Guardar Hora', en: 'Save Time' },
-  test_push: { es: 'Probar Notificación', en: 'Test Notification' },
-  danger_zone_title: { es: 'Zona de Peligro / Danger Zone', en: 'Danger Zone / Zona de Peligro' },
-  total_cards_saved: { es: 'Actualmente tienes', en: 'You currently have' },
-  cards_in_library: { es: 'tarjetas guardadas en tu biblioteca.', en: 'cards saved in your library.' },
-  delete_all_btn: { es: 'Eliminar todas mis tarjetas', en: 'Delete all my cards' },
-  delete_warning: {
-    es: 'Al eliminar las tarjetas se borrarán permanentemente sus datos y progreso.',
-    en: 'Deleting cards will permanently remove their data and progress.'
-  },
-  admin_tools_title: { es: 'Herramientas de Administrador / Dev Tools', en: 'Admin Tools / Dev Tools' },
-  reset_srs_btn: { es: 'Resetear Repasos SRS (Dev Debug)', en: 'Reset SRS Reviews (Dev Debug)' },
-  about_title: { es: 'FlashCardApp PWA', en: 'FlashCardApp PWA' },
-  version_label: { es: 'Versión:', en: 'Version:' },
-  db_label: { es: 'Base de datos:', en: 'Database:' },
-  push_label: { es: 'Notificaciones:', en: 'Notifications:' },
-  creator_label: { es: 'Creador & Desarrollador:', en: 'Creator & Developer:' },
-
   // ADD CARD FORM
   add_card_title: { es: 'Crear tarjeta', en: 'Create flashcard' },
   spanish_label: { es: 'Frase en español *', en: 'Spanish phrase *' },
@@ -121,7 +96,39 @@ export const translations: Translations = {
   // VERB CONJUGATOR
   conjugations_table: { es: 'Tabla de Conjugaciones', en: 'Conjugation Table' },
   loading_conjugations: { es: 'Cargando conjugaciones...', en: 'Loading conjugations...' },
-  conjugations_error: { es: 'No se pudieron cargar las conjugaciones.', en: 'Could not load conjugations.' }
+  conjugations_error: { es: 'No se pudieron cargar las conjugaciones.', en: 'Could not load conjugations.' },
+
+  // SETTINGS VIEW
+  settings_title: { es: 'Ajustes de Cuenta y Aplicación', en: 'Account & App Settings' },
+  logout_btn: { es: 'Salir', en: 'Log Out' },
+  change_password_btn: { es: 'Cambiar contraseña', en: 'Change password' },
+  cancel_change_password: { es: 'Cancelar cambio de contraseña', en: 'Cancel password change' },
+  current_password_label: { es: 'Contraseña actual', en: 'Current password' },
+  new_password_label: { es: 'Nueva contraseña', en: 'New password' },
+  update_password_btn: { es: 'Actualizar contraseña', en: 'Update password' },
+  min_chars: { es: 'Mínimo 4 caracteres', en: 'Minimum 4 characters' },
+  notification_channel_title: { es: 'Canal de notificaciones', en: 'Notification channel' },
+  channel_off: { es: 'Desactivado', en: 'Disabled' },
+  channel_off_sub: { es: 'Sin avisos', en: 'No notifications' },
+  channel_push: { es: 'Push', en: 'Push' },
+  channel_push_sub: { es: 'Sólo en dispositivo', en: 'Device only' },
+  channel_mail: { es: 'Mail', en: 'Email' },
+  channel_mail_sub: { es: 'Por correo electrónico', en: 'By email' },
+  channel_push_mail: { es: 'Push & Mail', en: 'Push & Email' },
+  channel_push_mail_sub: { es: 'Ambos canales', en: 'Both channels' },
+  reminder_time_label: { es: 'Hora del aviso:', en: 'Reminder time:' },
+  save_notification_prefs: { es: 'Guardar preferencias de notificación', en: 'Save notification preferences' },
+  test_push_btn: { es: 'Probar Push', en: 'Test Push' },
+  test_email_btn: { es: 'Probar Email', en: 'Test Email' },
+  danger_zone_title: { es: 'Zona de peligro', en: 'Danger zone' },
+  delete_all_cards_btn: { es: 'Eliminar todas mis tarjetas', en: 'Delete all my cards' },
+  delete_warning_notice: { es: 'Al eliminar las tarjetas se borrarán permanentemente sus datos y progreso.', en: 'Deleting cards will permanently remove their data and study progress.' },
+  admin_tools_title: { es: 'Herramientas de administrador', en: 'Admin tools' },
+  reset_srs_btn: { es: 'Resetear repasos SRS (Dev Debug)', en: 'Reset SRS reviews (Dev Debug)' },
+  app_info_version: { es: 'Versión:', en: 'Version:' },
+  app_info_db: { es: 'Base de datos:', en: 'Database:' },
+  app_info_push: { es: 'Notificaciones:', en: 'Notifications:' },
+  app_info_creator: { es: 'Creador & Desarrollador:', en: 'Creator & Developer:' }
 };
 
 interface LanguageContextType {
