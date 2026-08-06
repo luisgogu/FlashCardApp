@@ -16,11 +16,9 @@ def capitalize_tag_str(raw_tags: Optional[str]) -> str:
     tags_list = [t.strip().capitalize() for t in raw_tags.split(',') if t.strip()]
     return ", ".join(tags_list)
 
-
 # USER CRUD
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(func.lower(User.email) == email.strip().lower()).first()
-
 
 def create_user(db: Session, user_data: schemas.UserRegister) -> User:
     hashed_pwd = hash_password(user_data.password)
@@ -33,11 +31,17 @@ def create_user(db: Session, user_data: schemas.UserRegister) -> User:
         email=email_clean,
         hashed_password=hashed_pwd,
         name=user_data.name.strip(),
-        is_admin=is_admin
+        is_admin=is_admin,
+        reminder_time="20:00",
+        reminder_enabled=True,
+        notification_channel="push",
+        created_at=datetime.utcnow()
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    return db_user
+
 def change_user_password(db: Session, user: User, new_password: str) -> User:
     """Updates user hashed password in DB."""
     user.hashed_password = hash_password(new_password)
