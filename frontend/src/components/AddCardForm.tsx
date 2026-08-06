@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
+import { useLanguage } from '../context/LanguageContext';
 import { api } from '../services/api';
 import type { DuplicateCheckResponse, Card } from '../types/card';
 import type { SuggestionResponse } from '../services/api';
@@ -10,6 +11,7 @@ interface AddCardFormProps {
 }
 
 export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
+  const { t } = useLanguage();
   const [textEs, setTextEs] = useState('');
   const [translationEn, setTranslationEn] = useState('');
   const [note, setNote] = useState('');
@@ -92,11 +94,11 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
       setSuggestion(null);
       setForceSave(false);
 
-      setToastMessage('¡Tarjeta guardada / Flashcard saved!');
+      setToastMessage(t('card_saved_toast'));
       setTimeout(() => setToastMessage(null), 3000);
     } catch (error) {
       console.error(error);
-      alert('Error al guardar la tarjeta.');
+      alert(t('card_save_error'));
     } finally {
       setIsSaving(false);
     }
@@ -122,17 +124,15 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
       <div className="bg-white border border-[#E6E0D4] rounded-2xl p-5 shadow-xs space-y-4">
         {/* Title Header */}
         <div className="border-b border-[#F0EBE1] pb-3">
-          <h2 className="text-base font-bold text-[#2C2621]">Crear tarjeta</h2>
-          <p className="text-xs text-[#7C746A]">Create flashcard</p>
+          <h2 className="text-base font-bold text-[#2C2621]">{t('add_card_title')}</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Spanish Phrase Input */}
           <div>
-            <label className="block text-xs font-bold text-[#2C2621]">
-              Frase en español *
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">
+              {t('spanish_label')}
             </label>
-            <span className="block text-[10px] text-[#7C746A] mb-1">Spanish phrase</span>
 
             <div className="relative">
               <input
@@ -142,7 +142,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
                   setTextEs(e.target.value);
                   setForceSave(false);
                 }}
-                placeholder="Ej: Tengo ganas de comer tacos..."
+                placeholder={t('spanish_placeholder')}
                 required
                 className={`${inputStyle} ${isChecking ? 'pr-9' : ''}`}
               />
@@ -169,7 +169,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
                       key={idx}
                       type="button"
                       onClick={() => setTextEs(sug!)}
-                      className="bg-[#2C2621] hover:bg-[#423C35] text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition shadow-2xs"
+                      className="bg-[#2C2621] hover:bg-[#423C35] text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition shadow-2xs cursor-pointer"
                     >
                       {sug}
                     </button>
@@ -186,7 +186,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold">Frase ya registrada / Already registered</p>
+                  <p className="font-bold">{t('already_registered')}</p>
                   <p className="mt-0.5 text-[#6B5527]">
                     "{dupResult.exact_match.text_es}" &rarr;{' '}
                     <span className="italic">{dupResult.exact_match.translation_en}</span>
@@ -197,9 +197,9 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
                 <button
                   type="button"
                   onClick={() => setForceSave(true)}
-                  className="bg-[#2C2621] text-white px-3 py-1 rounded-lg font-medium text-[11px] hover:bg-[#423C35] transition"
+                  className="bg-[#2C2621] text-white px-3 py-1 rounded-lg font-medium text-[11px] hover:bg-[#423C35] transition cursor-pointer"
                 >
-                  Guardar de todas formas / Save anyway
+                  {t('save_anyway_btn')}
                 </button>
                 <button
                   type="button"
@@ -208,9 +208,9 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
                     setDupResult(null);
                     setSuggestion(null);
                   }}
-                  className="text-[#7C746A] underline px-2 py-1 text-[11px]"
+                  className="text-[#7C746A] underline px-2 py-1 text-[11px] cursor-pointer"
                 >
-                  Borrar / Clear
+                  {t('clear_btn')}
                 </button>
               </div>
             </div>
@@ -221,7 +221,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
               <div className="flex items-start gap-2">
                 <Info className="w-3.5 h-3.5 text-[#7C746A] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-[11px]">Frases similares / Similar phrases:</p>
+                  <p className="font-bold text-[11px]">{t('similar_phrases')}</p>
                   <ul className="list-disc list-inside text-[11px] text-[#5C5549] mt-0.5 space-y-0.5">
                     {dupResult.partial_matches.slice(0, 3).map((match) => (
                       <li key={match.id}>
@@ -237,15 +237,14 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
 
           {/* English Translation Input */}
           <div>
-            <label className="block text-xs font-bold text-[#2C2621]">
-              Traducción al inglés *
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">
+              {t('english_label')}
             </label>
-            <span className="block text-[10px] text-[#7C746A] mb-1">English translation</span>
             <input
               type="text"
               value={translationEn}
               onChange={(e) => setTranslationEn(e.target.value)}
-              placeholder="Ej: I feel like eating tacos"
+              placeholder={t('english_placeholder')}
               required
               className={inputStyle}
             />
@@ -255,15 +254,15 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
               <div className="mt-1.5 bg-emerald-50 border border-emerald-200 rounded-xl p-2 text-xs flex items-center justify-between text-[#2C2621] animate-fade-in">
                 <div className="flex items-center gap-1.5 min-w-0 pr-2">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                  <span className="text-[11px] text-[#7C746A] shrink-0">Traducción sugerida:</span>
+                  <span className="text-[11px] text-[#7C746A] shrink-0">{t('suggested_translation')}</span>
                   <span className="font-bold truncate">{suggestion.translation_en}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setTranslationEn(suggestion.translation_en!)}
-                  className="bg-emerald-800 text-white text-[10px] font-bold px-2 py-1 rounded-md hover:bg-emerald-900 transition shrink-0"
+                  className="bg-emerald-800 text-white text-[10px] font-bold px-2 py-1 rounded-md hover:bg-emerald-900 transition shrink-0 cursor-pointer"
                 >
-                  Usar
+                  {t('use_btn')}
                 </button>
               </div>
             )}
@@ -271,30 +270,28 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
 
           {/* Note Input */}
           <div>
-            <label className="block text-xs font-bold text-[#2C2621]">
-              Nota o Contexto <span className="font-normal text-[#7C746A]">(opcional)</span>
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">
+              {t('notes_label')}
             </label>
-            <span className="block text-[10px] text-[#7C746A] mb-1">Note or Context (optional)</span>
             <input
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Ej: Explicación de uso o situación..."
+              placeholder={t('notes_placeholder')}
               className={inputStyle}
             />
           </div>
 
           {/* Tags Input */}
           <div>
-            <label className="block text-xs font-bold text-[#2C2621]">
-              Etiquetas <span className="font-normal text-[#7C746A]">(separadas por coma)</span>
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">
+              {t('tags_label')}
             </label>
-            <span className="block text-[10px] text-[#7C746A] mb-1">Tags (comma separated)</span>
             <input
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="Ej: Comida, Verbo, Viajes"
+              placeholder={t('tags_placeholder')}
               className={inputStyle}
             />
           </div>
@@ -303,7 +300,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
           <button
             type="submit"
             disabled={isSaving || (hasExactMatch && !forceSave)}
-            className={`w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-150 flex flex-col items-center justify-center ${
+            className={`w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
               hasExactMatch && !forceSave
                 ? 'bg-[#E6E0D4] text-[#A0988C] cursor-not-allowed'
                 : 'bg-[#2C2621] hover:bg-[#423C35] active:scale-[0.99] text-white shadow-xs'
@@ -312,17 +309,12 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
             {isSaving ? (
               <span className="flex items-center gap-1.5 py-0.5">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Guardando...</span>
+                <span>{t('save_card_btn')}...</span>
               </span>
             ) : (
               <>
-                <span className="flex items-center gap-1">
-                  <Plus className="w-4 h-4" />
-                  {hasExactMatch && forceSave ? 'Guardar de todas formas' : 'Guardar tarjeta'}
-                </span>
-                <span className="text-[9px] font-normal opacity-70">
-                  {hasExactMatch && forceSave ? 'Save anyway' : 'Save flashcard'}
-                </span>
+                <Plus className="w-4 h-4" />
+                <span>{hasExactMatch && forceSave ? t('save_anyway_btn') : t('save_card_btn')}</span>
               </>
             )}
           </button>

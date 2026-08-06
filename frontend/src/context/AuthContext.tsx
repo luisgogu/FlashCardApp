@@ -64,11 +64,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Error al iniciar sesión');
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
     }
-    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.detail || 'Error al iniciar sesión');
+    }
+
+    if (!data?.access_token || !data?.user) {
+      throw new Error('Respuesta del servidor no válida');
+    }
+
     localStorage.setItem('flashcardapp_token', data.access_token);
     setToken(data.access_token);
     setUser(data.user);
@@ -80,11 +91,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name })
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Error al registrar la cuenta');
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
     }
-    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.detail || 'Error al registrar la cuenta');
+    }
+
+    if (!data?.access_token || !data?.user) {
+      throw new Error('Respuesta de registro no válida');
+    }
+
     localStorage.setItem('flashcardapp_token', data.access_token);
     setToken(data.access_token);
     setUser(data.user);

@@ -25,11 +25,10 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ className = '', 
       <button
         type="button"
         onClick={() => setLanguage('es')}
-        className={`relative z-10 flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full transition-colors duration-200 ${
+        className={`relative z-10 flex items-center justify-center px-2.5 py-1 rounded-full transition-colors duration-200 ${
           size === 'sm' ? 'text-[10px]' : 'text-xs'
         } ${language === 'es' ? 'text-[#2C2621] font-bold' : 'text-[#7C746A] hover:text-[#2C2621] font-medium'}`}
       >
-        <span className="text-xs leading-none">🇪🇸</span>
         <span>ES</span>
       </button>
 
@@ -37,11 +36,10 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({ className = '', 
       <button
         type="button"
         onClick={() => setLanguage('en')}
-        className={`relative z-10 flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full transition-colors duration-200 ${
+        className={`relative z-10 flex items-center justify-center px-2.5 py-1 rounded-full transition-colors duration-200 ${
           size === 'sm' ? 'text-[10px]' : 'text-xs'
         } ${language === 'en' ? 'text-[#2C2621] font-bold' : 'text-[#7C746A] hover:text-[#2C2621] font-medium'}`}
       >
-        <span className="text-xs leading-none">🇬🇧</span>
         <span>EN</span>
       </button>
     </div>

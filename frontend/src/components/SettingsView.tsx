@@ -17,7 +17,9 @@ import {
   KeyRound,
   Mail,
   BellOff,
-  Send
+  Send,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -35,6 +37,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
   // Notification Preferences State
@@ -255,27 +258,45 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
             <form onSubmit={handleChangePasswordSubmit} className="mt-3 space-y-3 bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl p-3 animate-fade-in">
               <div>
                 <label className="block text-[11px] font-bold text-[#2C2621] mb-1">Contraseña actual</label>
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full bg-white border border-[#E6E0D4] rounded-lg px-3 py-1.5 text-xs text-[#2C2621] focus:outline-none focus:border-[#C86D51]"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="••••••••"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full bg-white border border-[#E6E0D4] rounded-lg pl-3 pr-8 py-1.5 text-xs text-[#2C2621] focus:outline-none focus:border-[#C86D51]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-2 p-0.5 text-[#7C746A] hover:text-[#2C2621] transition cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5 text-[#C86D51]" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-[#2C2621] mb-1">Nueva contraseña</label>
-                <input
-                  type="password"
-                  required
-                  minLength={4}
-                  placeholder="Mínimo 4 caracteres"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-white border border-[#E6E0D4] rounded-lg px-3 py-1.5 text-xs text-[#2C2621] focus:outline-none focus:border-[#C86D51]"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={4}
+                    placeholder="Mínimo 4 caracteres"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full bg-white border border-[#E6E0D4] rounded-lg pl-3 pr-8 py-1.5 text-xs text-[#2C2621] focus:outline-none focus:border-[#C86D51]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-2 p-0.5 text-[#7C746A] hover:text-[#2C2621] transition cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5 text-[#C86D51]" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
 
               <button
