@@ -73,7 +73,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!res.ok) {
-      throw new Error(data?.detail || 'Error al iniciar sesión');
+      const errorMsg = typeof data?.detail === 'string'
+        ? data.detail
+        : (Array.isArray(data?.detail) ? data.detail.map((d: any) => d.msg).join(', ') : 'Error al iniciar sesión');
+      throw new Error(errorMsg);
     }
 
     if (!data?.access_token || !data?.user) {
@@ -100,7 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!res.ok) {
-      throw new Error(data?.detail || 'Error al registrar la cuenta');
+      const errorMsg = typeof data?.detail === 'string'
+        ? data.detail
+        : (Array.isArray(data?.detail) ? data.detail.map((d: any) => d.msg).join(', ') : 'Error al registrar la cuenta');
+      throw new Error(errorMsg);
     }
 
     if (!data?.access_token || !data?.user) {
