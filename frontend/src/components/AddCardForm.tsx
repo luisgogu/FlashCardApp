@@ -152,31 +152,39 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
             </div>
 
             {/* REAL-TIME SPANISH SPELLCHECK TOP 3 SUGGESTIONS */}
-            {((suggestion?.suggestions_es && suggestion.suggestions_es.length > 0) || suggestion?.corrected_es) && (
-              <div className="mt-1.5 bg-[#FAF8F5] border border-amber-200 rounded-xl p-2 text-xs space-y-1.5 animate-fade-in">
-                <div className="flex items-center gap-1.5 text-[#2C2621]">
-                  <Wand2 className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                  <span className="text-[11px] text-[#7C746A]">
-                    {((suggestion?.suggestions_es?.length ?? 0) > 1) ? 'Sugerencias ortográficas:' : 'Corrección ortográfica:'}
-                  </span>
+            {(() => {
+              const sugs = (suggestion?.suggestions_es && suggestion.suggestions_es.length > 0
+                ? suggestion.suggestions_es
+                : [suggestion?.corrected_es]
+              )
+                .filter(Boolean)
+                .filter((s) => s!.trim().toLowerCase() !== textEs.trim().toLowerCase());
+
+              if (sugs.length === 0) return null;
+
+              return (
+                <div className="mt-1.5 bg-[#FAF8F5] border border-amber-200 rounded-xl p-2 text-xs space-y-1.5 animate-fade-in">
+                  <div className="flex items-center gap-1.5 text-[#2C2621]">
+                    <Wand2 className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                    <span className="text-[11px] text-[#7C746A]">
+                      {sugs.length > 1 ? 'Sugerencias ortográficas:' : 'Corrección ortográfica:'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {sugs.map((sug, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setTextEs(sug!)}
+                        className="bg-[#2C2621] hover:bg-[#423C35] text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition shadow-2xs cursor-pointer"
+                      >
+                        {sug}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {(suggestion?.suggestions_es && suggestion.suggestions_es.length > 0
-                    ? suggestion.suggestions_es
-                    : [suggestion?.corrected_es]
-                  ).filter(Boolean).map((sug, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setTextEs(sug!)}
-                      className="bg-[#2C2621] hover:bg-[#423C35] text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition shadow-2xs cursor-pointer"
-                    >
-                      {sug}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
           </div>
 
@@ -250,7 +258,8 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
             />
 
             {/* REAL-TIME ENGLISH AUTO-TRANSLATION SUGGESTION */}
-            {suggestion?.translation_en && (
+            {suggestion?.translation_en &&
+              suggestion.translation_en.trim().toLowerCase() !== textEs.trim().toLowerCase() && (
               <div className="mt-1.5 bg-emerald-50 border border-emerald-200 rounded-xl p-2 text-xs flex items-center justify-between text-[#2C2621] animate-fade-in">
                 <div className="flex items-center gap-1.5 min-w-0 pr-2">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
