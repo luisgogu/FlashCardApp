@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import type { Card } from '../types/card';
 import { api } from '../services/api';
 import { ReviewCardFlipper } from './ReviewCardFlipper';
+import { useLanguage } from '../context/LanguageContext';
 import { CheckCircle2, RotateCw, Sparkles, Loader2, Info } from 'lucide-react';
 
 export const ReviewModuleView: React.FC = () => {
+  const { t } = useLanguage();
   const [activeDeck, setActiveDeck] = useState<Card[]>([]);
   const [allCards, setAllCards] = useState<Card[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -26,7 +28,7 @@ export const ReviewModuleView: React.FC = () => {
       setReviewAllMode(false);
 
       if (due.length === 0 && all.length > 0) {
-        setNotice('¡Todas tus tarjetas pendientes están al día por hoy!');
+        setNotice(t('everything_up_to_date'));
         setTimeout(() => setNotice(null), 4000);
       }
     } catch (error) {
@@ -76,7 +78,7 @@ export const ReviewModuleView: React.FC = () => {
     return (
       <div className="w-full max-w-md mx-auto p-8 text-center text-xs text-[#7C746A] flex flex-col items-center justify-center space-y-2">
         <Loader2 className="w-5 h-5 animate-spin text-[#2C2621]" />
-        <p>Cargando sesión de repaso... / Loading review...</p>
+        <p>{t('loading_review')}</p>
       </div>
     );
   }
@@ -99,39 +101,30 @@ export const ReviewModuleView: React.FC = () => {
           </div>
 
           <div>
-            <h2 className="text-base font-bold text-[#2C2621]">¡Repaso Completado!</h2>
-            <p className="text-xs text-[#7C746A]">Review Completed!</p>
+            <h2 className="text-base font-bold text-[#2C2621]">{t('review_completed_title')}</h2>
           </div>
 
           {completedCount > 0 ? (
             <div>
               <p className="text-xs text-[#5C5549] leading-relaxed">
-                Has repasado <span className="font-bold text-[#2C2621]">{completedCount} tarjetas</span> en esta sesión. ¡Próximos repasos programados con éxito!
-              </p>
-              <p className="text-[11px] text-[#7C746A] mt-1">
-                You reviewed {completedCount} cards in this session. Next reviews scheduled successfully!
+                {t('review_completed_title')} ({completedCount} {t('cards_count')})
               </p>
             </div>
           ) : (
             <div>
               <p className="text-xs text-[#5C5549] leading-relaxed font-medium">
-                ¡Todas tus tarjetas están al día!
-              </p>
-              <p className="text-[11px] text-[#7C746A] mt-1">
-                Everything is up to date!
+                {t('everything_up_to_date')}
               </p>
             </div>
           )}
 
-
-
           <div className="bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl p-3.5 text-xs text-left space-y-1">
             <div className="flex items-center justify-between font-bold text-[#2C2621]">
-              <span>Total tarjetas en biblioteca:</span>
+              <span>{t('total_cards_library')}</span>
               <span>{allCards.length}</span>
             </div>
             <div className="flex items-center justify-between text-[#7C746A] text-[11px]">
-              <span>Pendientes para hoy:</span>
+              <span>{t('due_today_count')}</span>
               <span>0</span>
             </div>
           </div>
@@ -139,22 +132,21 @@ export const ReviewModuleView: React.FC = () => {
           <div className="pt-2 space-y-2">
             <button
               onClick={fetchDueCards}
-              className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] text-[#2C2621] border border-[#E6E0D4] rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5"
+              className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] text-[#2C2621] border border-[#E6E0D4] rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <RotateCw className="w-3.5 h-3.5" />
-              <span>Comprobar pendientes de nuevo / Check due cards</span>
+              <span>{t('check_due_again')}</span>
             </button>
 
             {allCards.length > 0 && (
               <button
                 onClick={startReviewAll}
-                className="w-full bg-[#2C2621] hover:bg-[#423C35] text-white rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
+                className="w-full bg-[#2C2621] hover:bg-[#423C35] text-white rounded-xl py-2.5 px-4 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>{reviewAllMode ? 'Volver a repasar todas las tarjetas' : `Repasar todas las tarjetas (${allCards.length})`}</span>
+                <span>{reviewAllMode ? t('review_all_cards') : `${t('review_all_cards')} (${allCards.length})`}</span>
               </button>
             )}
-
           </div>
         </div>
       </div>

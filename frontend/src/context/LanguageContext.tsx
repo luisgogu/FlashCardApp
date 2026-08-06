@@ -101,10 +101,27 @@ export const translations: Translations = {
   rating_hard: { es: 'Difícil', en: 'Hard' },
   rating_good: { es: 'Bien', en: 'Good' },
   rating_easy: { es: 'Fácil', en: 'Easy' },
+  review_completed_title: { es: '¡Repaso Completado!', en: 'Review Completed!' },
+  everything_up_to_date: { es: '¡Todas tus tarjetas están al día!', en: 'Everything is up to date!' },
+  total_cards_library: { es: 'Total tarjetas en biblioteca:', en: 'Total cards in library:' },
+  due_today_count: { es: 'Pendientes para hoy:', en: 'Due for review today:' },
+  check_due_again: { es: 'Comprobar pendientes de nuevo', en: 'Check due cards again' },
+  review_all_cards: { es: 'Repasar todas las tarjetas', en: 'Review all cards' },
+  loading_review: { es: 'Cargando sesión de repaso...', en: 'Loading review...' },
 
   // GLOSSARY VIEW
-  search_placeholder: { es: 'Buscar por español, inglés o etiqueta...', en: 'Search by Spanish, English or tag...' },
-  no_cards_found: { es: 'No se encontraron tarjetas.', en: 'No cards found.' }
+  glossary_title: { es: 'Glosario & Biblioteca', en: 'Glossary & Card Library' },
+  create_tag_btn: { es: 'Crear Etiqueta', en: 'Create Tag' },
+  all_filter: { es: 'Todos', en: 'All' },
+  search_placeholder: { es: 'Buscar por texto, etiqueta o fecha...', en: 'Search by text, tag or date...' },
+  loading_glossary: { es: 'Cargando glosario...', en: 'Loading glossary...' },
+  no_cards_found: { es: 'No se encontraron tarjetas.', en: 'No cards found.' },
+  modified_label: { es: 'Modificado:', en: 'Modified:' },
+
+  // VERB CONJUGATOR
+  conjugations_table: { es: 'Tabla de Conjugaciones', en: 'Conjugation Table' },
+  loading_conjugations: { es: 'Cargando conjugaciones...', en: 'Loading conjugations...' },
+  conjugations_error: { es: 'No se pudieron cargar las conjugaciones.', en: 'Could not load conjugations.' }
 };
 
 interface LanguageContextType {

@@ -3,6 +3,7 @@ import type { Card } from '../types/card';
 import { Search, Edit2, Clock, Plus, X } from 'lucide-react';
 import { VerbConjugatorTable } from './VerbConjugatorTable';
 import { CreateTagModal } from './CreateTagModal';
+import { useLanguage } from '../context/LanguageContext';
 import { api } from '../services/api';
 
 interface GlossaryViewProps {
@@ -18,6 +19,7 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
   onCardClick,
   onRefresh,
 }) => {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [isCreateTagOpen, setIsCreateTagOpen] = useState(false);
@@ -37,15 +39,15 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
   };
 
   // Helper to capitalize tag
-  const capTag = (t: string) => (t ? t.trim().charAt(0).toUpperCase() + t.trim().slice(1) : '');
+  const capTag = (tStr: string) => (tStr ? tStr.trim().charAt(0).toUpperCase() + tStr.trim().slice(1) : '');
 
   // Extract all unique standardized tags (Title Case)
   const allTags = useMemo(() => {
     const set = new Set<string>();
     cards.forEach((c) => {
       if (c.tags) {
-        c.tags.split(',').forEach((t) => {
-          const trimmed = capTag(t);
+        c.tags.split(',').forEach((tStr) => {
+          const trimmed = capTag(tStr);
           if (trimmed) set.add(trimmed);
         });
       }
@@ -74,7 +76,7 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
         (card.tags &&
           card.tags
             .split(',')
-            .map((t) => capTag(t))
+            .map((tStr) => capTag(tStr))
             .includes(selectedTag));
 
       return matchesSearch && matchesTag;
@@ -83,7 +85,7 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
 
   const isVerbCard = (card: Card) => {
     if (!card.tags) return false;
-    return card.tags.toLowerCase().split(',').some((t) => t.trim().includes('verbo'));
+    return card.tags.toLowerCase().split(',').some((tStr) => tStr.trim().includes('verbo'));
   };
 
   const handleDeleteTagGlobally = async (e: React.MouseEvent, tag: string) => {
@@ -99,24 +101,23 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
     }
   };
 
-
   return (
     <div className="w-full max-w-md mx-auto p-4 space-y-4 animate-fade-in pb-24">
       {/* Header */}
       <div className="bg-white border border-[#E6E0D4] rounded-2xl p-4 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-[#2C2621]">Glosario & Biblioteca</h2>
-            <p className="text-xs text-[#7C746A]">Glossary & Card Library ({filteredCards.length})</p>
+            <h2 className="text-base font-bold text-[#2C2621]">{t('glossary_title')}</h2>
+            <p className="text-xs text-[#7C746A]">({filteredCards.length} {t('cards_count')})</p>
           </div>
 
           {/* Button to open Create Tag Modal */}
           <button
             onClick={() => setIsCreateTagOpen(true)}
-            className="bg-[#2C2621] hover:bg-[#423C35] text-white rounded-xl py-1.5 px-3 text-xs font-bold transition flex items-center gap-1 shadow-xs"
+            className="bg-[#2C2621] hover:bg-[#423C35] text-white rounded-xl py-1.5 px-3 text-xs font-bold transition flex items-center gap-1 shadow-xs cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Crear Etiqueta</span>
+            <span>{t('create_tag_btn')}</span>
           </button>
         </div>
 
@@ -127,7 +128,7 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por texto, etiqueta o fecha (ej: 28/07)..."
+            placeholder={t('search_placeholder')}
             className="w-full bg-[#FAF8F5] border border-[#E6E0D4] focus:border-[#2C2621] rounded-xl pl-9 pr-3 py-2 text-xs text-[#2C2621] outline-none placeholder:text-[#A0988C]"
           />
         </div>
@@ -137,13 +138,13 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
             <button
               onClick={() => setSelectedTag(null)}
-              className={`px-2.5 py-1 rounded-lg border shrink-0 font-medium transition ${
+              className={`px-2.5 py-1 rounded-lg border shrink-0 font-medium transition cursor-pointer ${
                 selectedTag === null
                   ? 'bg-[#2C2621] text-white border-[#2C2621]'
                   : 'bg-[#FAF8F5] text-[#5C5549] border-[#E6E0D4] hover:bg-[#F5F2EB]'
               }`}
             >
-              Todos / All
+              {t('all_filter')}
             </button>
             {allTags.map((tag) => (
               <div
@@ -156,14 +157,14 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
               >
                 <button
                   onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
-                  className="outline-none"
+                  className="outline-none cursor-pointer"
                 >
                   #{tag}
                 </button>
                 <button
                   onClick={(e) => handleDeleteTagGlobally(e, tag)}
-                  title={`Eliminar etiqueta #${tag} de todas las tarjetas`}
-                  className="hover:text-red-400 p-0.5 ml-0.5 rounded transition"
+                  title={`Eliminar etiqueta #${tag}`}
+                  className="hover:text-red-400 p-0.5 ml-0.5 rounded transition cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -175,10 +176,10 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
 
       {/* Cards List */}
       {isLoading ? (
-        <p className="text-xs text-[#7C746A] py-8 text-center">Cargando glosario... / Loading...</p>
+        <p className="text-xs text-[#7C746A] py-8 text-center">{t('loading_glossary')}</p>
       ) : filteredCards.length === 0 ? (
         <div className="bg-white border border-[#E6E0D4] rounded-2xl p-6 text-center text-xs text-[#7C746A]">
-          No se encontraron tarjetas. / No cards found.
+          {t('no_cards_found')}
         </div>
       ) : (
         <div className="space-y-2">
@@ -237,7 +238,7 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
                 {/* Last updated metadata */}
                 <div className="flex items-center gap-1 shrink-0">
                   <Clock className="w-3 h-3 text-[#A0988C]" />
-                  <span>Modificado: {formatDate(card.updated_at || card.created_at)}</span>
+                  <span>{t('modified_label')} {formatDate(card.updated_at || card.created_at)}</span>
                 </div>
               </div>
             </div>

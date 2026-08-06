@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 import type { TenseKey, ConjugationItem, VerbConjugationData } from '../utils/conjugator';
 import { BookMarked, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
@@ -14,6 +15,7 @@ export const VerbConjugatorTable: React.FC<VerbConjugatorTableProps> = ({
   infinitiveEn,
   defaultOpen = false,
 }) => {
+  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState<boolean>(defaultOpen);
   const [activeTense, setActiveTense] = useState<TenseKey>('presente');
   const [conjugationData, setConjugationData] = useState<VerbConjugationData | null>(null);
@@ -48,7 +50,7 @@ export const VerbConjugatorTable: React.FC<VerbConjugatorTableProps> = ({
   const tensesList: { key: TenseKey; labelEs: string; labelEn: string }[] = [
     { key: 'presente', labelEs: 'Presente', labelEn: 'Present' },
     { key: 'preterito', labelEs: 'Pretérito', labelEn: 'Past' },
-    { key: 'imperfecto', labelEs: 'Imperfecto', labelEn: 'Imperfect/Continuous' },
+    { key: 'imperfecto', labelEs: 'Imperfecto', labelEn: 'Imperfect' },
     { key: 'futuro', labelEs: 'Futuro', labelEn: 'Future' },
     { key: 'imperativo', labelEs: 'Imperativo', labelEn: 'Commands' },
   ];
@@ -67,11 +69,11 @@ export const VerbConjugatorTable: React.FC<VerbConjugatorTableProps> = ({
           e.stopPropagation();
           setIsOpen((prev: boolean) => !prev);
         }}
-        className="w-full px-3 py-2.5 flex items-center justify-between font-bold text-[#2C2621] hover:bg-[#F5F2EB] transition text-left"
+        className="w-full px-3 py-2.5 flex items-center justify-between font-bold text-[#2C2621] hover:bg-[#F5F2EB] transition text-left cursor-pointer"
       >
         <div className="flex items-center gap-1.5">
           <BookMarked className="w-3.5 h-3.5 text-[#8C5E43]" />
-          <span>Tabla de Conjugaciones / Conjugations</span>
+          <span>{t('conjugations_table')}</span>
         </div>
         {isOpen ? (
           <ChevronUp className="w-4 h-4 text-[#7C746A]" />
@@ -86,34 +88,34 @@ export const VerbConjugatorTable: React.FC<VerbConjugatorTableProps> = ({
           {isLoading ? (
             <div className="py-4 text-center text-xs text-[#7C746A] flex items-center justify-center gap-1.5">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2C2621]" />
-              <span>Cargando conjugaciones... / Loading...</span>
+              <span>{t('loading_conjugations')}</span>
             </div>
           ) : activeTenseData ? (
             <>
               {/* Tense Tabs Selector */}
               <div className="flex items-center gap-1 overflow-x-auto pb-1">
-                {tensesList.map((t) => (
+                {tensesList.map((item) => (
                   <button
-                    key={t.key}
+                    key={item.key}
                     type="button"
                     onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
-                      setActiveTense(t.key);
+                      setActiveTense(item.key);
                     }}
-                    className={`px-2.5 py-1 rounded-lg shrink-0 font-medium text-[11px] transition ${
-                      activeTense === t.key
+                    className={`px-2.5 py-1 rounded-lg shrink-0 font-medium text-[11px] transition cursor-pointer ${
+                      activeTense === item.key
                         ? 'bg-[#2C2621] text-white'
                         : 'bg-[#FAF8F5] text-[#5C5549] hover:bg-[#F5F2EB] border border-[#E6E0D4]'
                     }`}
                   >
-                    <span>{t.labelEs}</span>
+                    <span>{language === 'es' ? item.labelEs : item.labelEn}</span>
                   </button>
                 ))}
               </div>
 
               {/* Active Tense Name Subtitle */}
               <div className="text-[10px] text-[#7C746A] font-semibold border-b border-[#F0EBE1] pb-1">
-                {activeTenseData.tenseNameEs} &bull; <span className="font-normal">{activeTenseData.tenseNameEn}</span>
+                {language === 'es' ? activeTenseData.tenseNameEs : activeTenseData.tenseNameEn}
               </div>
 
               {/* 2-Column Forms Grid */}
@@ -121,11 +123,12 @@ export const VerbConjugatorTable: React.FC<VerbConjugatorTableProps> = ({
                 {activeTenseData.forms.map((item: ConjugationItem, idx: number) => (
                   <div key={idx} className="py-1.5 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-[#7C746A] w-24 shrink-0 font-medium">{item.personEs}</span>
+                      <span className="text-[10px] text-[#7C746A] w-24 shrink-0 font-medium">
+                        {language === 'es' ? item.personEs : item.personEn}
+                      </span>
                       <span className="font-bold text-[#2C2621]">{String(item.verbEs || '')}</span>
                     </div>
                     <div className="text-right text-[11px] text-[#5C5549] italic">
-                      <span className="text-[#A0988C] not-italic mr-1">{item.personEn}</span>
                       <span>{String(item.verbEn || '')}</span>
                     </div>
                   </div>
@@ -133,7 +136,7 @@ export const VerbConjugatorTable: React.FC<VerbConjugatorTableProps> = ({
               </div>
             </>
           ) : (
-            <p className="text-xs text-[#7C746A] py-2 text-center">No se pudieron cargar las conjugaciones.</p>
+            <p className="text-xs text-[#7C746A] py-2 text-center">{t('conjugations_error')}</p>
           )}
         </div>
       )}
