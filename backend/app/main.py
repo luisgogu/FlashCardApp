@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal, engine, Base, get_db
+from app.database import SessionLocal, engine, Base, get_db, check_and_migrate_db
 from app import models, schemas, crud, conjugator_service, translation_service
 from app.auth_service import (
     create_access_token,
@@ -24,8 +24,9 @@ from app.gcs_sync import download_db_from_gcs, upload_db_to_gcs
 # Download DB from GCS if running on Cloud Run before creating tables
 download_db_from_gcs()
 
-# Create database tables automatically on startup
+# Create database tables automatically on startup and perform safe schema migrations
 Base.metadata.create_all(bind=engine)
+check_and_migrate_db()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -83,11 +83,11 @@ class UserResponse(BaseModel):
     id: int
     email: str
     name: str
-    is_admin: bool = False
-    reminder_time: str = "20:00"
-    reminder_enabled: bool = True
-    notification_channel: str = "push"
-    created_at: datetime
+    is_admin: Optional[bool] = False
+    reminder_time: Optional[str] = "20:00"
+    reminder_enabled: Optional[bool] = True
+    notification_channel: Optional[str] = "push"
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

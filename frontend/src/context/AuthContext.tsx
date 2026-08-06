@@ -73,9 +73,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!res.ok) {
-      const errorMsg = typeof data?.detail === 'string'
-        ? data.detail
-        : (Array.isArray(data?.detail) ? data.detail.map((d: any) => d.msg).join(', ') : 'Error al iniciar sesión');
+      let errorMsg = 'Error al iniciar sesión';
+      if (typeof data?.detail === 'string') {
+        errorMsg = data.detail;
+      } else if (Array.isArray(data?.detail)) {
+        errorMsg = data.detail.map((d: any) => typeof d === 'string' ? d : d.msg || JSON.stringify(d)).join(', ');
+      } else if (data?.detail && typeof data.detail === 'object') {
+        errorMsg = JSON.stringify(data.detail);
+      } else if (data?.message && typeof data.message === 'string') {
+        errorMsg = data.message;
+      }
       throw new Error(errorMsg);
     }
 
@@ -103,9 +110,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!res.ok) {
-      const errorMsg = typeof data?.detail === 'string'
-        ? data.detail
-        : (Array.isArray(data?.detail) ? data.detail.map((d: any) => d.msg).join(', ') : 'Error al registrar la cuenta');
+      let errorMsg = 'Error al registrar la cuenta';
+      if (typeof data?.detail === 'string') {
+        errorMsg = data.detail;
+      } else if (Array.isArray(data?.detail)) {
+        errorMsg = data.detail.map((d: any) => typeof d === 'string' ? d : d.msg || JSON.stringify(d)).join(', ');
+      } else if (data?.detail && typeof data.detail === 'object') {
+        errorMsg = JSON.stringify(data.detail);
+      } else if (data?.message && typeof data.message === 'string') {
+        errorMsg = data.message;
+      }
       throw new Error(errorMsg);
     }
 

@@ -31,3 +31,29 @@ def get_db():
     finally:
         db.close()
 
+
+def check_and_migrate_db():
+    """Ensures SQLite tables have all required columns even if database was created previously."""
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        if 'users' in tables:
+            columns = [c['name'] for c in inspector.get_columns('users')]
+            with engine.begin() as conn:
+                if 'reminder_time' not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN reminder_time VARCHAR DEFAULT '20:00'"))
+                if 'reminder_enabled' not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN reminder_enabled BOOLEAN DEFAULT 1"))
+                if 'notification_channel' not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN notification_channel VARCHAR DEFAULT 'push'"))
+                if 'is_admin' not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0"))
+        if 'cards' in tables:
+            columns = [c['name'] for c in inspector.get_columns('cards')]
+            with engine.begin() as conn:
+                if 'user_id' not in columns:
+                    conn.execute(text("ALTER TABLE cards ADD COLUMN user_id INTEGER"))
+    except Exception as e:
+        print(f"[DB Migration Warning] {e}")
+
