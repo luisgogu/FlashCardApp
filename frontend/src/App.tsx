@@ -127,7 +127,7 @@ function AppContent() {
       )}
 
       {/* Bottom Tab Navbar */}
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} dueCount={dueCardsCount} />
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} dueCount={dueCardsCount} totalCardsCount={cards.length} />
     </div>
   );
 }

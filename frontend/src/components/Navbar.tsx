@@ -8,9 +8,10 @@ interface NavbarProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   dueCount?: number;
+  totalCardsCount?: number;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, dueCount = 0 }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, dueCount = 0, totalCardsCount = 0 }) => {
   const { t } = useLanguage();
 
   return (
@@ -48,11 +49,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, dueCoun
         {/* Tab 3: Glosario */}
         <button
           onClick={() => setActiveTab('glossary')}
-          className={`flex flex-col items-center gap-1 transition-colors cursor-pointer ${
+          className={`flex flex-col items-center gap-1 relative transition-colors cursor-pointer ${
             activeTab === 'glossary' ? 'text-[#2C2621] font-bold' : 'text-[#8C8479] hover:text-[#2C2621]'
           }`}
         >
-          <BookOpen className="w-5 h-5" />
+          <div className="relative">
+            <BookOpen className="w-5 h-5" />
+            {totalCardsCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-[#7C746A] text-white text-[9px] font-bold px-1 min-w-4 h-4 rounded-full flex items-center justify-center">
+                {totalCardsCount}
+              </span>
+            )}
+          </div>
           <span className="text-[11px] leading-tight">{t('tab_glossary')}</span>
         </button>
 
