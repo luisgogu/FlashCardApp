@@ -22,7 +22,7 @@ Google Cloud Run incluye **2 millones de peticiones gratis al mes para siempre (
      --source . \
      --region us-east1 \
      --add-volume name=db-volume,type=cloud-storage,bucket=flashcardapp-db-bucket \
-     --mount-volume mount-path=/mnt/db,volume=db-volume \
+     --add-volume-mount volume=db-volume,mount-path=/mnt/db \
      --set-env-vars DB_DIR=/mnt/db \
      --allow-unauthenticated
    ```
