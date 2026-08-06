@@ -128,7 +128,34 @@ export const translations: Translations = {
   app_info_version: { es: 'Versión:', en: 'Version:' },
   app_info_db: { es: 'Base de datos:', en: 'Database:' },
   app_info_push: { es: 'Notificaciones:', en: 'Notifications:' },
-  app_info_creator: { es: 'Creador & Desarrollador:', en: 'Creator & Developer:' }
+  app_info_creator: { es: 'Creador & Desarrollador:', en: 'Creator & Developer:' },
+
+  // EDIT CARD MODAL
+  edit_card_title: { es: 'Editar Tarjeta', en: 'Edit Flashcard' },
+  delete_card_btn: { es: 'Eliminar', en: 'Delete' },
+  confirm_delete_card: { es: '¿Seguro que deseas eliminar esta tarjeta?', en: 'Are you sure you want to delete this card?' },
+  save_btn: { es: 'Guardar', en: 'Save' },
+  cancel_btn: { es: 'Cancelar', en: 'Cancel' },
+  card_update_error: { es: 'Error al actualizar la tarjeta.', en: 'Error updating flashcard.' },
+  card_delete_error: { es: 'Error al eliminar la tarjeta.', en: 'Error deleting flashcard.' },
+
+  // CREATE TAG MODAL
+  create_tag_modal_title: { es: 'Crear y Asignar Etiqueta', en: 'Create & Apply Tag' },
+  tag_name_label: { es: 'Nombre de la Etiqueta *', en: 'Tag Name *' },
+  tag_name_placeholder: { es: 'Ej: Gramática, Verbo, Viajes', en: 'Ex: Grammar, Verb, Travel' },
+  select_cards_count: { es: 'Seleccionar Tarjetas', en: 'Select Cards' },
+  select_all: { es: 'Todas', en: 'All' },
+  select_none: { es: 'Ninguna', en: 'None' },
+  search_card_placeholder: { es: 'Buscar tarjeta...', en: 'Search card...' },
+  no_cards_found_modal: { es: 'No se encontraron tarjetas.', en: 'No cards found.' },
+  apply_tag_btn: { es: 'Añadir Etiqueta', en: 'Apply Tag' },
+  tag_name_required_alert: { es: 'Por favor, introduce un nombre para la etiqueta.', en: 'Please enter a name for the tag.' },
+  select_at_least_one_card_alert: { es: 'Por favor, selecciona al menos una tarjeta.', en: 'Please select at least one card.' },
+  delete_tag_title: { es: 'Eliminar etiqueta', en: 'Delete tag' },
+
+  // SPELLCHECK & FORM
+  spell_suggestions: { es: 'Sugerencias ortográficas:', en: 'Spelling suggestions:' },
+  spell_correction: { es: 'Corrección ortográfica:', en: 'Spelling correction:' }
 };
 
 interface LanguageContextType {

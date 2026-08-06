@@ -167,7 +167,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
                   <div className="flex items-center gap-1.5 text-[#2C2621]">
                     <Wand2 className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                     <span className="text-[11px] text-[#7C746A]">
-                      {sugs.length > 1 ? 'Sugerencias ortográficas:' : 'Corrección ortográfica:'}
+                      {sugs.length > 1 ? t('spell_suggestions') : t('spell_correction')}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-1.5 pt-0.5">

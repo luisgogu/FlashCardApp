@@ -163,7 +163,7 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
                 </button>
                 <button
                   onClick={(e) => handleDeleteTagGlobally(e, tag)}
-                  title={`Eliminar etiqueta #${tag}`}
+                  title={`${t('delete_tag_title')} #${tag}`}
                   className="hover:text-red-400 p-0.5 ml-0.5 rounded transition cursor-pointer"
                 >
                   <X className="w-3 h-3" />

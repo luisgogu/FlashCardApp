@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Card } from '../types/card';
 import { X, Trash2, Check, Loader2 } from 'lucide-react';
 import { VerbConjugatorTable } from './VerbConjugatorTable';
+import { useLanguage } from '../context/LanguageContext';
 
 interface EditCardModalProps {
   card: Card;
@@ -18,6 +19,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
   onSave,
   onDelete,
 }) => {
+  const { t } = useLanguage();
   const [textEs, setTextEs] = useState(card.text_es);
   const [translationEn, setTranslationEn] = useState(card.translation_en);
   const [note, setNote] = useState(card.note || '');
@@ -28,7 +30,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isVerb = tags.toLowerCase().split(',').some((t) => t.trim().includes('verbo'));
+  const isVerb = tags.toLowerCase().split(',').some((tStr) => tStr.trim().includes('verbo'));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,21 +46,21 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
       onClose();
     } catch (error) {
       console.error(error);
-      alert('Error al actualizar la tarjeta.');
+      alert(t('card_update_error'));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (confirm('¿Seguro que deseas eliminar esta tarjeta? / Delete this card?')) {
+    if (confirm(t('confirm_delete_card'))) {
       try {
         setIsDeleting(true);
         await onDelete(card.id);
         onClose();
       } catch (error) {
         console.error(error);
-        alert('Error al eliminar la tarjeta.');
+        alert(t('card_delete_error'));
       } finally {
         setIsDeleting(false);
       }
@@ -79,15 +81,13 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
         {/* Modal Header */}
         <div>
-          <h3 className="text-base font-bold text-[#2C2621]">Editar Tarjeta</h3>
-          <p className="text-xs text-[#7C746A]">Edit Flashcard</p>
+          <h3 className="text-base font-bold text-[#2C2621]">{t('edit_card_title')}</h3>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* Spanish Text */}
           <div>
-            <label className="block text-xs font-bold text-[#2C2621]">Frase en Español *</label>
-            <span className="block text-[10px] text-[#7C746A] mb-1">Spanish Phrase</span>
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('spanish_label')}</label>
             <input
               type="text"
               value={textEs}
@@ -99,8 +99,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* English Translation */}
           <div>
-            <label className="block text-xs font-bold text-[#2C2621]">Traducción al Inglés *</label>
-            <span className="block text-[10px] text-[#7C746A] mb-1">English Translation</span>
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('english_label')}</label>
             <input
               type="text"
               value={translationEn}
@@ -112,8 +111,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Note */}
           <div>
-            <label className="block text-xs font-bold text-[#2C2621]">Nota o Contexto</label>
-            <span className="block text-[10px] text-[#7C746A] mb-1">Note or Context</span>
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('notes_label')}</label>
             <input
               type="text"
               value={note}
@@ -124,13 +122,12 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Tags */}
           <div>
-            <label className="block text-xs font-bold text-[#2C2621]">Etiquetas</label>
-            <span className="block text-[10px] text-[#7C746A] mb-1">Tags</span>
+            <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('tags_label')}</label>
             <input
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="Ej: verbo, comida"
+              placeholder={t('tags_placeholder')}
               className="w-full bg-[#FAF8F5] border border-[#E6E0D4] focus:border-[#2C2621] rounded-xl px-3 py-2 text-sm text-[#2C2621] outline-none"
             />
           </div>
@@ -150,31 +147,31 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
               type="button"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="text-red-700 hover:text-red-900 border border-red-200 bg-red-50 hover:bg-red-100 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-1"
+              className="text-red-700 hover:text-red-900 border border-red-200 bg-red-50 hover:bg-red-100 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-1 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Eliminar / Delete</span>
+              <span>{t('delete_card_btn')}</span>
             </button>
 
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="bg-[#F5F2EB] hover:bg-[#E6E0D4] text-[#2C2621] rounded-xl px-3 py-2 text-xs font-medium"
+                className="bg-[#F5F2EB] hover:bg-[#E6E0D4] text-[#2C2621] rounded-xl px-3 py-2 text-xs font-medium cursor-pointer"
               >
-                Cancelar / Cancel
+                {t('cancel_btn')}
               </button>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="bg-[#2C2621] hover:bg-[#423C35] text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1"
+                className="bg-[#2C2621] hover:bg-[#423C35] text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1 cursor-pointer"
               >
                 {isSaving ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
                 ) : (
                   <Check className="w-3 h-3" />
                 )}
-                <span>Guardar / Save</span>
+                <span>{t('save_btn')}</span>
               </button>
             </div>
           </div>
