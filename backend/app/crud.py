@@ -129,6 +129,19 @@ def update_card(db: Session, card_id: int, card_data: schemas.CardUpdate, user_i
     return db_card
 
 
+def get_all_user_tags(db: Session, user_id: int) -> List[str]:
+    """Returns sorted list of all unique capitalized tags used across user's cards."""
+    cards = db.query(Card).filter((Card.user_id == user_id) | (Card.user_id == None)).all()
+    tags_set = set()
+    for card in cards:
+        if card.tags:
+            for tag in card.tags.split(','):
+                cleaned = tag.strip().capitalize()
+                if cleaned:
+                    tags_set.add(cleaned)
+    return sorted(list(tags_set))
+
+
 def delete_tag_globally(db: Session, tag_name: str, user_id: Optional[int] = None) -> int:
     """Removes a tag from all cards owned by the user."""
     tag_clean = tag_name.strip().lower()

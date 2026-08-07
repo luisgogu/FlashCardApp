@@ -31,7 +31,6 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
   const usedTagsSet = useMemo(() => {
     const set = new Set<string>();
     parts.forEach((p, idx) => {
-      // ignore the last part if user is actively typing it
       if (idx < parts.length - 1 || !currentToken) {
         const trimmed = p.trim().toLowerCase();
         if (trimmed) set.add(trimmed);
@@ -53,7 +52,7 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
     });
   }, [currentToken, existingTags, usedTagsSet]);
 
-  // Available quick tags when input is empty or typing
+  // Available quick tags when input is empty or focused
   const quickTags = useMemo(() => {
     return existingTags.filter((tag) => {
       const tagLower = tag.trim().toLowerCase();
@@ -61,15 +60,19 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
     }).slice(0, 6);
   }, [existingTags, usedTagsSet]);
 
-  // Handle clicking outside to close suggestions
+  // Handle clicking/touching outside to close suggestions
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleOutside = (e: Event) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsFocused(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleOutside);
+    document.addEventListener('touchstart', handleOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('touchstart', handleOutside);
+    };
   }, []);
 
   const handleSelectTag = (suggestedTag: string) => {
@@ -77,10 +80,15 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
     const newParts = [...previousParts, suggestedTag];
     const newValue = newParts.join(', ') + ', ';
     onChange(newValue);
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 50);
   };
+
+  const showDropdown = (isFocused || currentToken.length > 0) && matchingSuggestions.length > 0;
+  const showQuickTags = isFocused && matchingSuggestions.length === 0 && quickTags.length > 0;
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -98,7 +106,7 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
       </div>
 
       {/* AUTOCOMPLETE DROPDOWN MATCHES */}
-      {isFocused && matchingSuggestions.length > 0 && (
+      {showDropdown && (
         <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-[#E6E0D4] rounded-xl shadow-lg p-2 max-h-48 overflow-y-auto animate-fade-in space-y-1">
           <div className="text-[10px] font-bold text-[#7C746A] uppercase px-2 py-0.5 tracking-wider">
             Sugerencias de etiquetas
@@ -109,10 +117,18 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
                 key={tag}
                 type="button"
                 onMouseDown={(e) => {
-                  e.preventDefault(); // prevent input blur
+                  e.preventDefault();
                   handleSelectTag(tag);
                 }}
-                className="bg-[#2C2621] hover:bg-[#423C35] text-white text-xs font-semibold px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  handleSelectTag(tag);
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelectTag(tag);
+                }}
+                className="bg-[#2C2621] hover:bg-[#423C35] text-white text-xs font-semibold px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
               >
                 <TagIcon className="w-3 h-3 text-[#C86D51]" />
                 <span>{tag}</span>
@@ -123,7 +139,7 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
       )}
 
       {/* QUICK ADD EXISTING TAGS CHIPS */}
-      {isFocused && matchingSuggestions.length === 0 && quickTags.length > 0 && (
+      {showQuickTags && (
         <div className="mt-1.5 bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl p-2 animate-fade-in space-y-1">
           <div className="text-[10px] font-bold text-[#7C746A] uppercase px-1 tracking-wider flex items-center gap-1">
             <TagIcon className="w-3 h-3 text-[#C86D51]" />
@@ -135,10 +151,18 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
                 key={tag}
                 type="button"
                 onMouseDown={(e) => {
-                  e.preventDefault(); // prevent input blur
+                  e.preventDefault();
                   handleSelectTag(tag);
                 }}
-                className="bg-white hover:bg-[#FAF8F5] border border-[#E6E0D4] hover:border-[#2C2621] text-[#2C2621] text-xs font-medium px-2.5 py-0.5 rounded-lg transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  handleSelectTag(tag);
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelectTag(tag);
+                }}
+                className="bg-white hover:bg-[#FAF8F5] border border-[#E6E0D4] hover:border-[#2C2621] text-[#2C2621] text-xs font-medium px-2.5 py-0.5 rounded-lg transition flex items-center gap-1 cursor-pointer shadow-2xs active:scale-95"
               >
                 <Plus className="w-3 h-3 text-[#C86D51]" />
                 <span>{tag}</span>

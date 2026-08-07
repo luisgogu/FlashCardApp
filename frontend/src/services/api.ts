@@ -101,6 +101,19 @@ export const api = {
   },
 
   /**
+   * Get all unique tags owned by user.
+   */
+  async getTags(): Promise<string[]> {
+    const res = await fetch(`${API_BASE_URL}/tags`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      throw new Error('Error al obtener la lista de etiquetas');
+    }
+    return res.json();
+  },
+
+  /**
    * Get cards due for review today.
    */
   async getDueCards(): Promise<Card[]> {

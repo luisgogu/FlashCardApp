@@ -302,6 +302,15 @@ def get_verb_conjugations_api(
 # ==========================================
 # CARDS & TAGS ENDPOINTS (STRICT USER ISOLATION)
 # ==========================================
+@app.get("/api/tags", response_model=List[str])
+def get_user_tags_api(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """[TAGS API] Devuelve todas las etiquetas únicas del usuario."""
+    return crud.get_all_user_tags(db=db, user_id=current_user.id)
+
+
 @app.delete("/api/tags/{tag_name}")
 def delete_tag_globally_api(
     tag_name: str,

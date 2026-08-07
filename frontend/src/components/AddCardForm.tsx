@@ -19,10 +19,22 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded, existingC
   const [note, setNote] = useState('');
   const [tags, setTags] = useState('');
 
+  const [fetchedTags, setFetchedTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    api.getTags()
+      .then((tList) => setFetchedTags(tList))
+      .catch((err) => console.error('Error fetching user tags:', err));
+  }, []);
+
   const capTag = (tStr: string) => (tStr ? tStr.trim().charAt(0).toUpperCase() + tStr.trim().slice(1) : '');
 
   const existingTags = useMemo(() => {
     const set = new Set<string>();
+    fetchedTags.forEach((tStr) => {
+      const trimmed = capTag(tStr);
+      if (trimmed) set.add(trimmed);
+    });
     existingCards.forEach((c) => {
       if (c.tags) {
         c.tags.split(',').forEach((tStr) => {
@@ -32,7 +44,7 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded, existingC
       }
     });
     return Array.from(set);
-  }, [existingCards]);
+  }, [existingCards, fetchedTags]);
 
   const [isChecking, setIsChecking] = useState(false);
   const [dupResult, setDupResult] = useState<DuplicateCheckResponse | null>(null);
