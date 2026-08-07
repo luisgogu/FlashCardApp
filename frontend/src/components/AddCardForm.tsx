@@ -1,21 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
 import { useLanguage } from '../context/LanguageContext';
 import { api } from '../services/api';
 import type { DuplicateCheckResponse, Card } from '../types/card';
 import type { SuggestionResponse } from '../services/api';
 import { AlertTriangle, CheckCircle2, Loader2, Plus, Info, Sparkles, Wand2 } from 'lucide-react';
+import { TagInputWithSuggestions } from './TagInputWithSuggestions';
 
 interface AddCardFormProps {
   onCardAdded: (newCard: Card) => void;
+  existingCards?: Card[];
 }
 
-export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
+export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded, existingCards = [] }) => {
   const { t } = useLanguage();
   const [textEs, setTextEs] = useState('');
   const [translationEn, setTranslationEn] = useState('');
   const [note, setNote] = useState('');
   const [tags, setTags] = useState('');
+
+  const capTag = (tStr: string) => (tStr ? tStr.trim().charAt(0).toUpperCase() + tStr.trim().slice(1) : '');
+
+  const existingTags = useMemo(() => {
+    const set = new Set<string>();
+    existingCards.forEach((c) => {
+      if (c.tags) {
+        c.tags.split(',').forEach((tStr) => {
+          const trimmed = capTag(tStr);
+          if (trimmed) set.add(trimmed);
+        });
+      }
+    });
+    return Array.from(set);
+  }, [existingCards]);
 
   const [isChecking, setIsChecking] = useState(false);
   const [dupResult, setDupResult] = useState<DuplicateCheckResponse | null>(null);
@@ -296,10 +313,10 @@ export const AddCardForm: React.FC<AddCardFormProps> = ({ onCardAdded }) => {
             <label className="block text-xs font-bold text-[#2C2621] mb-1">
               {t('tags_label')}
             </label>
-            <input
-              type="text"
+            <TagInputWithSuggestions
               value={tags}
-              onChange={(e) => setTags(e.target.value)}
+              onChange={setTags}
+              existingTags={existingTags}
               placeholder={t('tags_placeholder')}
               className={inputStyle}
             />

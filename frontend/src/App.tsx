@@ -90,7 +90,7 @@ function AppContent() {
       <main className="flex-1 w-full pb-24 pt-2">
         {activeTab === 'add' && (
           <div className="space-y-2">
-            <AddCardForm onCardAdded={handleCardAdded} />
+            <AddCardForm onCardAdded={handleCardAdded} existingCards={cards} />
           </div>
         )}
 
@@ -123,6 +123,7 @@ function AppContent() {
           onClose={() => setSelectedCardForEdit(null)}
           onSave={handleUpdateCard}
           onDelete={handleDeleteCard}
+          existingCards={cards}
         />
       )}
 

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Card } from '../types/card';
 import { X, Trash2, Check, Loader2 } from 'lucide-react';
 import { VerbConjugatorTable } from './VerbConjugatorTable';
 import { useLanguage } from '../context/LanguageContext';
+import { TagInputWithSuggestions } from './TagInputWithSuggestions';
 
 interface EditCardModalProps {
   card: Card;
@@ -10,6 +11,7 @@ interface EditCardModalProps {
   onClose: () => void;
   onSave: (updatedCard: Card) => void;
   onDelete: (cardId: number) => void;
+  existingCards?: Card[];
 }
 
 export const EditCardModal: React.FC<EditCardModalProps> = ({
@@ -18,6 +20,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
   onClose,
   onSave,
   onDelete,
+  existingCards = [],
 }) => {
   const { t } = useLanguage();
   const [textEs, setTextEs] = useState(card.text_es);
@@ -27,6 +30,21 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const capTag = (tStr: string) => (tStr ? tStr.trim().charAt(0).toUpperCase() + tStr.trim().slice(1) : '');
+
+  const existingTags = useMemo(() => {
+    const set = new Set<string>();
+    existingCards.forEach((c) => {
+      if (c.tags) {
+        c.tags.split(',').forEach((tStr) => {
+          const trimmed = capTag(tStr);
+          if (trimmed) set.add(trimmed);
+        });
+      }
+    });
+    return Array.from(set);
+  }, [existingCards]);
 
   if (!isOpen) return null;
 
@@ -123,10 +141,10 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
           {/* Tags */}
           <div>
             <label className="block text-xs font-bold text-[#2C2621] mb-1">{t('tags_label')}</label>
-            <input
-              type="text"
+            <TagInputWithSuggestions
               value={tags}
-              onChange={(e) => setTags(e.target.value)}
+              onChange={setTags}
+              existingTags={existingTags}
               placeholder={t('tags_placeholder')}
               className="w-full bg-[#FAF8F5] border border-[#E6E0D4] focus:border-[#2C2621] rounded-xl px-3 py-2 text-sm text-[#2C2621] outline-none"
             />
