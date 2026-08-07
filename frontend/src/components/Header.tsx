@@ -28,13 +28,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuth }) => {
           {user ? (
             <div
               onClick={onOpenAuth}
-              title={`${t('logged_in_as')} ${user.name}`}
+              title={`${t('logged_in_as')} ${user.name || 'User'}`}
               className="cursor-pointer bg-white border border-[#E6E0D4] rounded-full px-2.5 py-1 text-xs text-[#2C2621] font-bold flex items-center gap-1.5 shadow-xs hover:bg-[#FAF8F5] transition min-w-0 max-w-[140px] sm:max-w-[200px]"
             >
               <div className="w-4 h-4 rounded-full bg-[#C86D51] text-white flex items-center justify-center text-[10px] uppercase font-bold shrink-0">
-                {user.name.charAt(0)}
+                {(user.name || 'U').charAt(0)}
               </div>
-              <span className="text-[11px] truncate shrink min-w-0">{user.name}</span>
+              <span className="text-[11px] truncate shrink min-w-0">{user.name || 'User'}</span>
             </div>
           ) : (
             <button
