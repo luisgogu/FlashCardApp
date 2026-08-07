@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Tag as TagIcon, Plus } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface TagInputWithSuggestionsProps {
   value: string;
@@ -18,6 +19,7 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
   className,
   id,
 }) => {
+  const { t } = useLanguage();
   const [isFocused, setIsFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -109,7 +111,7 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
       {showDropdown && (
         <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-[#E6E0D4] rounded-xl shadow-lg p-2 max-h-48 overflow-y-auto animate-fade-in space-y-1">
           <div className="text-[10px] font-bold text-[#7C746A] uppercase px-2 py-0.5 tracking-wider">
-            Sugerencias de etiquetas
+            {t('tag_suggestions_title')}
           </div>
           <div className="flex flex-wrap gap-1.5">
             {matchingSuggestions.map((tag) => (
@@ -143,7 +145,7 @@ export const TagInputWithSuggestions: React.FC<TagInputWithSuggestionsProps> = (
         <div className="mt-1.5 bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl p-2 animate-fade-in space-y-1">
           <div className="text-[10px] font-bold text-[#7C746A] uppercase px-1 tracking-wider flex items-center gap-1">
             <TagIcon className="w-3 h-3 text-[#C86D51]" />
-            <span>Tus etiquetas existentes:</span>
+            <span>{t('existing_tags_title')}</span>
           </div>
           <div className="flex flex-wrap gap-1.5 pt-0.5">
             {quickTags.map((tag) => (

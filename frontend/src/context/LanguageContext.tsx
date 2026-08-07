@@ -171,7 +171,11 @@ export const translations: Translations = {
   // ACCOUNT DELETION
   delete_account_btn: { es: 'Eliminar mi cuenta definitivamente', en: 'Delete my account permanently' },
   confirm_delete_account: { es: '¿Seguro que deseas eliminar tu cuenta? Esta acción no se puede deshacer y borrará permanentemente todas tus tarjetas.', en: 'Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your cards.' },
-  account_deleted_toast: { es: 'Tu cuenta ha sido eliminada con éxito.', en: 'Your account has been deleted successfully.' }
+  account_deleted_toast: { es: 'Tu cuenta ha sido eliminada con éxito.', en: 'Your account has been deleted successfully.' },
+
+  // TAG SUGGESTIONS
+  tag_suggestions_title: { es: 'Sugerencias de etiquetas', en: 'Tag suggestions' },
+  existing_tags_title: { es: 'Tus etiquetas existentes:', en: 'Your existing tags:' }
 };
 
 interface LanguageContextType {
