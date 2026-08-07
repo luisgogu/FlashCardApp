@@ -42,67 +42,55 @@ def capitalize_tag(tag_str: str) -> str:
     return ", ".join(tags)
 
 
+import urllib.parse
+import urllib.request
+import json
+
+
 def get_top_es_suggestions(text_es: str) -> List[str]:
-    """Genera hasta 3 mejores sugerencias ortográficas/gramaticales en español."""
+    """Genera hasta 3 mejores sugerencias ortográficas/gramaticales en español usando LanguageTool API.
+    Si la frase es 100% correcta (como 'Tú preguntas muchas cosas'), devuelve [] para evitar confusión.
+    """
     text_clean = text_es.strip()
-    if not text_clean or len(text_clean) < 2:
+    if not text_clean or len(text_clean) < 3:
         return []
 
-    words = text_clean.split()
-    raw_candidates = []
+    try:
+        data = urllib.parse.urlencode({'text': text_clean, 'language': 'es'}).encode('utf-8')
+        req = urllib.request.Request(
+            'https://api.languagetool.org/v2/check',
+            data=data,
+            headers={'User-Agent': 'FlashCardApp/1.0'}
+        )
+        with urllib.request.urlopen(req, timeout=3.0) as resp:
+            res_json = json.loads(resp.read().decode('utf-8'))
+            matches = res_json.get('matches', [])
+            if not matches:
+                # 0 errores detectados => la frase está perfecta, no devolver sugerencias espurias
+                return []
 
-    # Check if words have actual spelling typos
-    has_typos = False
-    for word in words:
-        word_clean = re.sub(r'[^\w]', '', word)
-        if len(word_clean) > 2 and word_clean.lower() not in spell_es:
-            has_typos = True
-            cands = list(spell_es.candidates(word_clean.lower()) or [])
-            for cand in cands[:4]:
-                if word.istitle():
-                    cand = cand.capitalize()
-                elif word.isupper():
-                    cand = cand.upper()
-                replaced = text_clean.replace(word_clean, cand)
-                if replaced not in raw_candidates:
-                    raw_candidates.append(replaced)
+            suggestions = []
+            seen = set()
+            for match in matches:
+                replacements = match.get('replacements', [])
+                offset = match.get('offset', 0)
+                length = match.get('length', 0)
+                for r in replacements[:3]:
+                    val = r.get('value')
+                    if val:
+                        corrected = text_clean[:offset] + val + text_clean[offset + length:]
+                        corrected_clean = fix_encoding(corrected).strip()
+                        c_norm = corrected_clean.lower()
+                        if c_norm != text_clean.lower() and c_norm not in seen:
+                            seen.add(c_norm)
+                            suggestions.append(corrected_clean)
 
-    # 1. Compound word split candidate (e.g. "puedir" -> "puedo ir") - ONLY if word is NOT in spell_es
-    if len(words) == 1 and len(text_clean) >= 5 and text_clean.lower() not in spell_es:
-        w = text_clean.lower()
-        for i in range(3, len(w) - 1):
-            left, right = w[:i], w[i:]
-            left_fixed = 'puedo' if left in ('pued', 'puedo') else (spell_es.correction(left) or left)
-            right_fixed = spell_es.correction(right) or right
-            if left_fixed in spell_es and right_fixed in spell_es:
-                comp = f"{left_fixed} {right_fixed}"
-                if comp not in raw_candidates:
-                    raw_candidates.append(comp)
+            if suggestions:
+                return suggestions[:3]
+    except Exception as e:
+        print(f"[LanguageTool API Warning]: {e}")
 
-    # 2. Roundtrip translation candidate (gives full grammar & accents) ONLY if typos exist
-    if has_typos:
-        try:
-            translated_en = GoogleTranslator(source='es', target='en').translate(text_clean)
-            if translated_en and isinstance(translated_en, str):
-                reconstructed_es = GoogleTranslator(source='en', target='es').translate(translated_en)
-                if reconstructed_es and isinstance(reconstructed_es, str):
-                    rec_clean = fix_encoding(reconstructed_es.strip())
-                    if rec_clean and rec_clean.lower() != text_clean.lower():
-                        raw_candidates.append(rec_clean)
-        except Exception as e:
-            print(f"[Roundtrip Error]: {e}")
-
-    # Clean, deduplicate while preserving order, max 3
-    final_sugs = []
-    seen = set()
-    for s in raw_candidates:
-        s_clean = fix_encoding(s).strip()
-        s_norm = s_clean.lower()
-        if s_norm not in seen and s_norm != text_clean.lower():
-            seen.add(s_norm)
-            final_sugs.append(s_clean)
-
-    return final_sugs[:3]
+    return []
 
 
 def suggest_translation_and_correction(text_es: str):
