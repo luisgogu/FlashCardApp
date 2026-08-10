@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useFlipMode } from '../context/FlipModeContext';
 import { subscribeToPushNotifications, sendTestPushNotification } from '../services/pushService';
 import {
   Trash2,
@@ -22,6 +23,8 @@ import {
   Eye,
   EyeOff,
   UserX,
+  ArrowRightLeft,
+  Info,
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -34,6 +37,7 @@ export type NotificationChannel = 'off' | 'push' | 'mail' | 'push_mail';
 export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onRefresh }) => {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
+  const { flipMode, setFlipMode } = useFlipMode();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Password Change State
@@ -502,6 +506,75 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
             )}
             <span>{t('test_email_btn')}</span>
           </button>
+        </div>
+      </div>
+
+      {/* CARD FLIP MODE SETTINGS (REVISED REPO / REVIEW FLIP DIRECTION) */}
+      <div className="bg-white border border-[#E6E0D4] rounded-2xl p-4 shadow-xs space-y-3">
+        <div className="flex items-center gap-2 text-[#2C2621]">
+          <ArrowRightLeft className="w-4 h-4 text-[#C86D51] shrink-0" />
+          <div>
+            <h3 className="text-xs font-bold leading-tight">{t('flip_mode_section_title')}</h3>
+            <p className="text-[10px] text-[#7C746A] mt-0.5">{t('flip_mode_desc')}</p>
+          </div>
+        </div>
+
+        {/* 2-BOX FLIP MODE SELECTOR */}
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          {/* BOX 1: ENG -> ESP */}
+          <div
+            onClick={() => setFlipMode('en_to_es')}
+            className={`cursor-pointer border rounded-xl p-3 transition flex flex-col justify-between ${
+              flipMode === 'en_to_es'
+                ? 'bg-[#2C2621] border-[#2C2621] text-white shadow-xs'
+                : 'bg-[#FAF8F5] border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-bold tracking-wider uppercase opacity-80">ENG ➔ ESP</span>
+              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                flipMode === 'en_to_es' ? 'border-white bg-white' : 'border-[#A0988E]'
+              }`}>
+                {flipMode === 'en_to_es' && <div className="w-2 h-2 rounded-full bg-[#2C2621]" />}
+              </div>
+            </div>
+            <div>
+              <span className="block text-xs font-bold">{t('flip_mode_en_es')}</span>
+              <span className={`block text-[9px] ${flipMode === 'en_to_es' ? 'opacity-80' : 'text-[#7C746A]'}`}>
+                {t('flip_mode_en_es_sub')}
+              </span>
+            </div>
+          </div>
+
+          {/* BOX 2: ESP -> ENG */}
+          <div
+            onClick={() => setFlipMode('es_to_en')}
+            className={`cursor-pointer border rounded-xl p-3 transition flex flex-col justify-between ${
+              flipMode === 'es_to_en'
+                ? 'bg-[#2C2621] border-[#2C2621] text-white shadow-xs'
+                : 'bg-[#FAF8F5] border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-bold tracking-wider uppercase opacity-80">ESP ➔ ENG</span>
+              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                flipMode === 'es_to_en' ? 'border-white bg-white' : 'border-[#A0988E]'
+              }`}>
+                {flipMode === 'es_to_en' && <div className="w-2 h-2 rounded-full bg-[#2C2621]" />}
+              </div>
+            </div>
+            <div>
+              <span className="block text-xs font-bold">{t('flip_mode_es_en')}</span>
+              <span className={`block text-[9px] ${flipMode === 'es_to_en' ? 'opacity-80' : 'text-[#7C746A]'}`}>
+                {t('flip_mode_es_en_sub')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-1.5 text-[10px] text-[#7C746A] bg-[#FAF8F5] border border-[#E6E0D4] p-2.5 rounded-xl">
+          <Info className="w-3.5 h-3.5 text-[#C86D51] shrink-0 mt-0.5" />
+          <span>{t('flip_mode_score_notice')}</span>
         </div>
       </div>
 

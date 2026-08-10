@@ -5,6 +5,16 @@ import { ReviewCardFlipper } from './ReviewCardFlipper';
 import { useLanguage } from '../context/LanguageContext';
 import { CheckCircle2, RotateCw, Sparkles, Loader2, Info } from 'lucide-react';
 
+// Utility function to shuffle array items randomly (Fisher-Yates shuffle)
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export const ReviewModuleView: React.FC = () => {
   const { t } = useLanguage();
   const [activeDeck, setActiveDeck] = useState<Card[]>([]);
@@ -21,7 +31,7 @@ export const ReviewModuleView: React.FC = () => {
       setIsLoading(true);
       const due = await api.getDueCards();
       const all = await api.getCards();
-      setActiveDeck(due);
+      setActiveDeck(shuffleArray(due));
       setAllCards(all);
       setCurrentIndex(0);
       setCompletedCount(0);
@@ -69,7 +79,7 @@ export const ReviewModuleView: React.FC = () => {
 
   const startReviewAll = () => {
     setReviewAllMode(true);
-    setActiveDeck(allCards);
+    setActiveDeck(shuffleArray(allCards));
     setCurrentIndex(0);
     setCompletedCount(0);
   };

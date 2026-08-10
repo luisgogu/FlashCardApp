@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Card } from '../types/card';
 import { useLanguage } from '../context/LanguageContext';
+import { useFlipMode } from '../context/FlipModeContext';
 import { RotateCw } from 'lucide-react';
 
 interface ReviewCardFlipperProps {
@@ -19,7 +20,13 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
   isSubmitting,
 }) => {
   const { t } = useLanguage();
+  const { flipMode } = useFlipMode();
   const [isFlipped, setIsFlipped] = useState(false);
+
+  // Reset flip state when card changes
+  useEffect(() => {
+    setIsFlipped(false);
+  }, [card.id]);
 
   const handleFlip = () => {
     setIsFlipped((prev) => !prev);
@@ -31,6 +38,12 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
     setIsFlipped(false);
     onRating(rating);
   };
+
+  const isEsToEn = flipMode === 'es_to_en';
+  const frontTitle = isEsToEn ? t('spanish_front_title') : t('english_front_title');
+  const frontText = isEsToEn ? card.text_es : card.translation_en;
+  const backTitle = isEsToEn ? t('english_back_title') : t('spanish_back_title');
+  const backText = isEsToEn ? card.translation_en : card.text_es;
 
   return (
     <div className="w-full max-w-md mx-auto space-y-4 animate-fade-in">
@@ -51,16 +64,16 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
             isFlipped ? 'rotate-y-180' : ''
           }`}
         >
-          {/* FRONT FACE: English Phrase (Prompt) */}
+          {/* FRONT FACE */}
           <div className="absolute inset-0 w-full h-full bg-white border border-[#E6E0D4] rounded-2xl p-6 shadow-xs backface-hidden flex flex-col justify-between items-center text-center">
             <div className="w-full flex items-center justify-between text-[10px] text-[#A0988C]">
-              <span className="font-bold text-[#2C2621] uppercase tracking-wider">{t('english_front_title')}</span>
+              <span className="font-bold text-[#2C2621] uppercase tracking-wider">{frontTitle}</span>
               <span>{t('front_label')}</span>
             </div>
 
             <div className="my-auto py-6 space-y-2">
               <p className="text-2xl font-bold text-[#2C2621] leading-relaxed italic">
-                "{card.translation_en}"
+                "{frontText}"
               </p>
             </div>
 
@@ -70,17 +83,17 @@ export const ReviewCardFlipper: React.FC<ReviewCardFlipperProps> = ({
             </div>
           </div>
 
-          {/* BACK FACE: Spanish Answer & Grammar Notes */}
+          {/* BACK FACE: Answer & Grammar Notes */}
           <div className="absolute inset-0 w-full h-full bg-[#FAF8F5] border border-[#2C2621] rounded-2xl p-6 shadow-md backface-hidden rotate-y-180 flex flex-col justify-between">
             <div className="w-full flex items-center justify-between text-[10px] text-[#7C746A] border-b border-[#E6E0D4] pb-2">
-              <span className="font-bold text-[#2C2621] uppercase tracking-wider">{t('spanish_back_title')}</span>
+              <span className="font-bold text-[#2C2621] uppercase tracking-wider">{backTitle}</span>
               <span>{t('back_label')}</span>
             </div>
 
             <div className="my-auto py-3 space-y-3">
               <div>
                 <p className="text-xl font-bold text-[#2C2621] leading-relaxed">
-                  "{card.text_es}"
+                  "{backText}"
                 </p>
               </div>
 

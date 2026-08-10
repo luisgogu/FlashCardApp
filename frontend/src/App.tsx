@@ -10,6 +10,7 @@ import { EditCardModal } from './components/EditCardModal';
 import { AuthScreen } from './components/AuthScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { FlipModeProvider } from './context/FlipModeContext';
 import { api } from './services/api';
 import type { Card } from './types/card';
 import { Loader2 } from 'lucide-react';
@@ -136,9 +137,11 @@ function AppContent() {
 export function App() {
   return (
     <LanguageProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <FlipModeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </FlipModeProvider>
     </LanguageProvider>
   );
 }

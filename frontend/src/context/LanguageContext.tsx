@@ -157,7 +157,7 @@ export const translations: Translations = {
   spell_suggestions: { es: 'Sugerencias ortográficas:', en: 'Spelling suggestions:' },
   spell_correction: { es: 'Corrección ortográfica:', en: 'Spelling correction:' },
 
-  // REVIEW FLIPPER
+  // REVIEW FLIPPER & FLIP MODE
   card_progress: { es: 'Tarjeta', en: 'Card' },
   of_label: { es: 'de', en: 'of' },
   front_label: { es: 'Anverso', en: 'Front' },
@@ -166,7 +166,16 @@ export const translations: Translations = {
   rate_recall: { es: '¿Qué tal la recordaste?', en: 'Rate your recall' },
   english_front_title: { es: 'Inglés (Piensa la traducción)', en: 'English (Recall Spanish translation)' },
   spanish_back_title: { es: 'Respuesta en Español & Notas', en: 'Spanish Answer & Notes' },
+  spanish_front_title: { es: 'Español (Piensa la traducción)', en: 'Spanish (Recall English translation)' },
+  english_back_title: { es: 'Respuesta en Inglés & Notas', en: 'English Answer & Notes' },
   note_label: { es: 'Nota:', en: 'Note:' },
+  flip_mode_section_title: { es: 'Modo de flipeo en repaso', en: 'Review card flip direction' },
+  flip_mode_desc: { es: 'Elige la dirección de los idiomas al repasar tus tarjetas.', en: 'Choose language direction when reviewing your cards.' },
+  flip_mode_en_es: { es: 'Inglés ➔ Español', en: 'English ➔ Spanish' },
+  flip_mode_en_es_sub: { es: 'Anverso: Inglés | Reverso: Español', en: 'Front: English | Back: Spanish' },
+  flip_mode_es_en: { es: 'Español ➔ Inglés', en: 'Spanish ➔ English' },
+  flip_mode_es_en_sub: { es: 'Anverso: Español | Reverso: Inglés', en: 'Front: Spanish | Back: English' },
+  flip_mode_score_notice: { es: 'Nota: La puntuación SRS de la tarjeta se mantiene estática e igual en ambos modos.', en: 'Note: Card SRS score remains static and identical in both modes.' },
 
   // ACCOUNT DELETION
   delete_account_btn: { es: 'Eliminar mi cuenta definitivamente', en: 'Delete my account permanently' },
