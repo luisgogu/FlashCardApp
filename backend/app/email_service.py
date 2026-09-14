@@ -12,12 +12,13 @@ logger = logging.getLogger(__name__)
 
 def get_smtp_config():
     return {
-        "host": os.getenv("SMTP_HOST", "").strip(),
+        "host": os.getenv("SMTP_HOST", "smtp.gmail.com").strip(),
         "port": int(os.getenv("SMTP_PORT", "587")),
-        "user": os.getenv("SMTP_USER", "").strip(),
-        "password": os.getenv("SMTP_PASSWORD", "").strip(),
-        "from_email": os.getenv("SMTP_FROM_EMAIL", os.getenv("SMTP_USER", "no-reply@flashcardapp.com")).strip()
+        "user": os.getenv("SMTP_USER", "luisgogu2001@gmail.com").strip(),
+        "password": os.getenv("SMTP_PASSWORD", "nfvv qnzj eded swxa").strip(),
+        "from_email": os.getenv("SMTP_FROM_EMAIL", "FlashCardApp <luisgogu2001@gmail.com>").strip()
     }
+
 
 
 def build_email_template(user_name: str, due_count: int) -> str:
@@ -173,7 +174,8 @@ def build_password_reset_email_template(user_name: str, reset_link: str, lang: s
         security_title = "Seguridad:"
         security_text = "Este enlace es personal y caducará en <strong>30 minutos</strong>.<br><br>Si no has solicitado este cambio, ignora este mensaje. Tu contraseña actual seguirá siendo válida y segura."
         fallback_text = "Si el botón no funciona, copia y pega este enlace en tu navegador:"
-        footer_text = "FlashCardApp &bull; Aprende vocabulario en contexto"
+        footer_text = "FlashCardApp &bull; Desarrollada por Luis González"
+
 
     html_body = f"""
     <!DOCTYPE html>
