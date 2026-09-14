@@ -60,7 +60,7 @@ Google Cloud Run incluye **2 millones de peticiones gratis al mes para siempre (
 4. En **Root Directory**, selecciona la carpeta `frontend`.
 5. En **Framework Preset**, selecciona `Vite`.
 6. Haz clic en **Deploy**.  
-   👉 ¡Listo! Vercel te dará una URL HTTPS como `https://flashcardapp.vercel.app`.
+   👉 ¡Listo! Vercel te dará una URL HTTPS como `https://flash-card-app-silk.vercel.app`.
 
 ---
 
@@ -76,7 +76,7 @@ Google Cloud Run incluye **2 millones de peticiones gratis al mes para siempre (
 
 ## 📱 ¡A disfrutar de FlashCardApp 24/7!
 
-- Abre `https://flashcardapp.vercel.app` en tu móvil Android (Chrome) o iPhone (Safari).
+- Abre `https://flash-card-app-silk.vercel.app` en tu móvil Android (Chrome) o iPhone (Safari).
 - En iOS: Pulsa **Compartir** -> **Añadir a la pantalla de inicio**.
 - En Android: Pulsa los 3 puntos -> **Instalar aplicación**.
 - Las notificaciones Web Push y los correos electrónicos funcionarán 24 horas al día desde cualquier lugar.

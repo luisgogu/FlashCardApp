@@ -156,7 +156,8 @@ def forgot_password_api(
             if "/?" in base_url or "?" in base_url:
                 base_url = base_url.split("?")[0].rstrip("/")
         else:
-            base_url = os.getenv("FRONTEND_URL", "https://flashcardapp.vercel.app").rstrip("/")
+            base_url = os.getenv("FRONTEND_URL", "https://flash-card-app-silk.vercel.app").rstrip("/")
+
             
         reset_link = f"{base_url}/?reset_token={reset_token}&lang={lang}"
         
