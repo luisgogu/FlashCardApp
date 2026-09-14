@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, Query, status, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, Query, status, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -14,8 +14,11 @@ from app.auth_service import (
     verify_password,
     hash_password,
     get_current_user,
-    get_current_user_optional
+    get_current_user_optional,
+    create_password_reset_token,
+    verify_and_get_user_for_reset
 )
+from app.email_service import send_password_reset_email
 from app.vapid_service import get_or_create_vapid_keys
 from app.push_service import send_web_push
 from app.scheduler import start_scheduler, stop_scheduler
@@ -130,6 +133,75 @@ def change_password_api(
         )
     crud.change_user_password(db=db, user=current_user, new_password=req.new_password)
     return {"status": "ok", "message": "Contraseña actualizada con éxito."}
+
+
+@app.post("/api/auth/forgot-password")
+def forgot_password_api(
+    req: schemas.ForgotPasswordRequest,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """[AUTH] Solicita el restablecimiento de contraseña enviando un correo con enlace seguro."""
+    user = crud.get_user_by_email(db=db, email=req.email)
+    if user:
+        reset_token = create_password_reset_token(email=user.email, current_hashed_password=user.hashed_password)
+        
+        lang = (req.lang or "es").strip().lower()
+        lang = "en" if lang.startswith("en") else "es"
+
+        origin = request.headers.get("origin") or request.headers.get("referer")
+        if origin:
+            base_url = origin.rstrip("/")
+            if "/?" in base_url or "?" in base_url:
+                base_url = base_url.split("?")[0].rstrip("/")
+        else:
+            base_url = os.getenv("FRONTEND_URL", "https://flashcardapp.vercel.app").rstrip("/")
+            
+        reset_link = f"{base_url}/?reset_token={reset_token}&lang={lang}"
+        
+        background_tasks.add_task(
+            send_password_reset_email,
+            to_email=user.email,
+            user_name=user.name,
+            reset_link=reset_link,
+            lang=lang
+        )
+        
+    lang = (req.lang or "es").strip().lower()
+    is_en = lang.startswith("en")
+    return {
+        "status": "ok",
+        "message": (
+            "If your email is registered, you will receive a recovery link shortly."
+            if is_en
+            else "Si tu correo electrónico está registrado, recibirás un enlace de recuperación en breve."
+        )
+    }
+
+
+
+@app.post("/api/auth/reset-password")
+def reset_password_api(
+    req: schemas.ResetPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """[AUTH] Restablece la contraseña usando el token seguro recibido por correo."""
+    user = verify_and_get_user_for_reset(token=req.token, db=db)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El enlace de recuperación es inválido, ha expirado o ya ha sido utilizado."
+        )
+
+    crud.change_user_password(db=db, user=user, new_password=req.new_password)
+    background_tasks.add_task(upload_db_to_gcs)
+    return {
+        "status": "ok",
+        "message": "Tu contraseña ha sido restablecida con éxito. Ya puedes iniciar sesión."
+    }
+
 
 
 @app.delete("/api/auth/account")

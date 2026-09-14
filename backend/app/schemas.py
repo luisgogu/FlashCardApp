@@ -67,6 +67,18 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=4, description="Nueva contraseña (mínimo 4 caracteres)")
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=3, description="Correo electrónico de la cuenta")
+    lang: Optional[str] = Field("es", description="Idioma preferido para el correo ('es' o 'en')")
+
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., min_length=10, description="Token JWT de restablecimiento")
+    new_password: str = Field(..., min_length=4, description="Nueva contraseña (mínimo 4 caracteres)")
+
+
+
 class NotificationSettingsRequest(BaseModel):
     reminder_time: str = Field("20:00", description="Hora preferida de aviso (HH:MM)")
     reminder_enabled: bool = Field(True, description="Si las notificaciones están activadas")

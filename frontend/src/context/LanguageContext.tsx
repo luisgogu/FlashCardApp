@@ -47,7 +47,28 @@ export const translations: Translations = {
   submit_modal_register: { es: 'Registrarse', en: 'Sign Up' },
   name_required_err: { es: 'Por favor, ingresa tu nombre', en: 'Please enter your name' },
   generic_error: { es: 'Ocurrió un error al procesar tu solicitud', en: 'An error occurred while processing your request' },
-  footer_dev_note: { es: 'Desarrollada por Luis González 👨‍💻', en: 'Made by Luis González 👨‍💻' },
+  footer_dev_note: { es: 'FlashCardApp • Repetición espaciada inteligente', en: 'FlashCardApp • Smart spaced repetition' },
+
+
+  // FORGOT & RESET PASSWORD
+  forgot_password_link: { es: '¿Olvidaste tu contraseña?', en: 'Forgot your password?' },
+  forgot_password_title: { es: 'Recuperar Contraseña', en: 'Recover Password' },
+  forgot_password_sub: { es: 'Introduce tu correo y te enviaremos un enlace seguro para restablecerla.', en: 'Enter your email and we will send you a secure link to reset it.' },
+  submit_forgot_password: { es: 'Enviar enlace de recuperación', en: 'Send reset link' },
+  forgot_password_sent_title: { es: '¡Enlace enviado!', en: 'Link sent!' },
+  forgot_password_sent_msg: { es: 'Si el correo está registrado, recibirás un mensaje en breve. Revisa tu bandeja de entrada o spam.', en: 'If the email is registered, you will receive an email shortly. Check your inbox or spam.' },
+  back_to_login: { es: 'Volver al inicio de sesión', en: 'Back to log in' },
+  reset_screen_title: { es: 'Restablecer Contraseña', en: 'Reset Password' },
+  reset_screen_sub: { es: 'Crea una nueva contraseña segura para tu cuenta.', en: 'Create a new secure password for your account.' },
+  new_password_placeholder: { es: 'Nueva contraseña (mínimo 4 caracteres)', en: 'New password (min 4 characters)' },
+  confirm_password_label: { es: 'Confirmar nueva contraseña', en: 'Confirm new password' },
+  confirm_password_placeholder: { es: 'Repite la nueva contraseña', en: 'Repeat new password' },
+  submit_reset_password: { es: 'Guardar nueva contraseña', en: 'Save new password' },
+  passwords_dont_match: { es: 'Las contraseñas no coinciden.', en: 'Passwords do not match.' },
+  password_too_short: { es: 'La contraseña debe tener al menos 4 caracteres.', en: 'Password must be at least 4 characters.' },
+  reset_success_msg: { es: '¡Contraseña actualizada con éxito! Ya puedes iniciar sesión con tu nueva clave.', en: 'Password updated successfully! You can now log in with your new password.' },
+  invalid_or_expired_token: { es: 'El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.', en: 'The recovery link is invalid or expired. Please request a new one.' },
+
 
   // ADD CARD FORM
   add_card_title: { es: 'Crear tarjeta', en: 'Create flashcard' },
@@ -197,9 +218,16 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      if (urlLang === 'en' || urlLang === 'es') {
+        return urlLang;
+      }
+    }
     const saved = localStorage.getItem('flashcardapp_lang');
     return (saved === 'en' || saved === 'es') ? saved : 'es';
   });
+
 
   useEffect(() => {
     localStorage.setItem('flashcardapp_lang', language);

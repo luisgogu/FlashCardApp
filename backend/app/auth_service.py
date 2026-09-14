@@ -6,9 +6,11 @@ import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.database import get_db
 from app import models
+
 
 # Configuración JWT & Hashing
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "flashcardapp_secret_key_super_segura_2026_dev")
@@ -84,3 +86,52 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise credentials_exception
     return user
+
+
+def create_password_reset_token(email: str, current_hashed_password: str) -> str:
+    """Crea un token JWT de un solo uso para restablecer la contraseña (válido 30 mins)."""
+    to_encode = {
+        "sub": email.strip().lower(),
+        "scope": "password_reset",
+        "pwhash_prefix": current_hashed_password[:12]
+    }
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=30)
+    to_encode.update({"exp": expire, "iat": now})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def verify_password_reset_token(token: str, current_hashed_password: str) -> Optional[str]:
+    """Verifica la validez de un token de restablecimiento contra el hash de contraseña actual.
+    Devuelve el email si es válido, o None si ha expirado, es inválido o ya fue usado."""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("scope") != "password_reset":
+            return None
+        if payload.get("pwhash_prefix") != current_hashed_password[:12]:
+            return None
+        return payload.get("sub")
+    except (jwt.PyJWTError, ValueError):
+        return None
+
+
+def verify_and_get_user_for_reset(token: str, db: Session) -> Optional[models.User]:
+    """Decodifica el token, busca el usuario por email y valida la huella y expiración."""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
+        if payload.get("scope") != "password_reset":
+            return None
+        email = payload.get("sub")
+        if not email:
+            return None
+        user = db.query(models.User).filter(func.lower(models.User.email) == email.strip().lower()).first()
+        if not user:
+            return None
+        verified_email = verify_password_reset_token(token, user.hashed_password)
+        if not verified_email:
+            return None
+        return user
+    except Exception:
+        return None
+
+

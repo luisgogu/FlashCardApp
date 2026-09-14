@@ -8,6 +8,7 @@ import { ReviewModuleView } from './components/ReviewModuleView';
 import { SettingsView } from './components/SettingsView';
 import { EditCardModal } from './components/EditCardModal';
 import { AuthScreen } from './components/AuthScreen';
+import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { FlipModeProvider } from './context/FlipModeContext';
@@ -23,6 +24,16 @@ function AppContent() {
   const [dueCardsCount, setDueCardsCount] = useState(0);
   const [isLoadingCards, setIsLoadingCards] = useState(false);
   const [selectedCardForEdit, setSelectedCardForEdit] = useState<Card | null>(null);
+
+  // URL token detection for password recovery
+  const [resetToken, setResetToken] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('reset_token') || params.get('token') || null;
+    }
+    return null;
+  });
+  const [authSuccessMessage, setAuthSuccessMessage] = useState<string | null>(null);
 
   const fetchCards = async () => {
     if (!user) return;
@@ -55,10 +66,39 @@ function AppContent() {
     );
   }
 
+  // PASSWORD RESET SCREEN (Triggered by email link ?reset_token=...)
+  if (resetToken) {
+    return (
+      <ResetPasswordScreen
+        token={resetToken}
+        onSuccess={() => {
+          if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('reset_token');
+            url.searchParams.delete('token');
+            window.history.replaceState({}, document.title, url.pathname);
+          }
+          setResetToken(null);
+          setAuthSuccessMessage(t('reset_success_msg'));
+        }}
+        onCancel={() => {
+          if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('reset_token');
+            url.searchParams.delete('token');
+            window.history.replaceState({}, document.title, url.pathname);
+          }
+          setResetToken(null);
+        }}
+      />
+    );
+  }
+
   // MANDATORY AUTH SCREEN (NO GUEST MODE)
   if (!user) {
-    return <AuthScreen />;
+    return <AuthScreen successMessage={authSuccessMessage} />;
   }
+
 
   const handleCardAdded = (newCard: Card) => {
     setCards((prev) => [newCard, ...prev]);

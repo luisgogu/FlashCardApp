@@ -295,6 +295,43 @@ export const api = {
   },
 
   /**
+   * Request password reset email.
+   */
+  async requestPasswordReset(email: string, lang = 'es'): Promise<{ status: string; message: string }> {
+    const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, lang }),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Error al solicitar la recuperación de contraseña');
+    }
+    return res.json();
+  },
+
+
+  /**
+   * Reset password with security token.
+   */
+  async resetPassword(token: string, newPassword: string): Promise<{ status: string; message: string }> {
+    const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token, new_password: newPassword }),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Error al restablecer la contraseña');
+    }
+    return res.json();
+  },
+
+  /**
    * Delete current user account permanently.
    */
   async deleteAccount(): Promise<{ status: string; message: string }> {
@@ -309,3 +346,4 @@ export const api = {
     return res.json();
   },
 };
+
