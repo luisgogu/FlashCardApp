@@ -393,7 +393,7 @@ def send_test_word_push_notification(
 
     payload = {
         "title": "🇪🇸 FlashCard del día",
-        "body": f'"{card.text_es}" — Toca para girar y ver su traducción',
+        "body": card.text_es,
         "icon": "/icon-192x192.png",
         "badge": "/favicon.svg",
         "tag": f"flashcard-word-{card.id}",

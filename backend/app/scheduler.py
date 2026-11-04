@@ -142,7 +142,7 @@ def check_and_send_scheduled_push_reminders():
                 else:
                     word_payload = {
                         "title": "🇪🇸 FlashCard del día",
-                        "body": f'"{card.text_es}" — Toca para girar y ver su traducción',
+                        "body": card.text_es,
                         "icon": "/icon-192x192.png",
                         "badge": "/favicon.svg",
                         "tag": f"flashcard-word-{card.id}",

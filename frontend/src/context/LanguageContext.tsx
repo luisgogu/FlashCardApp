@@ -146,7 +146,7 @@ export const translations: Translations = {
   srs_toggle_sub: { es: 'Te avisa a la hora elegida si tienes tarjetas pendientes.', en: 'Reminds you at the chosen time if you have due cards.' },
   srs_channel_label: { es: 'Canal para el aviso de repaso:', en: 'Review reminder channel:' },
   word_toggle_title: { es: '2. Palabra en español en pantalla de bloqueo', en: '2. Spanish word on lock screen' },
-  word_toggle_sub: { es: 'Envía una palabra en español por Push; al pulsarla abre la app y gira a su traducción.', en: 'Sends a Spanish word via Push; tapping it opens the app and flips to its translation.' },
+  word_toggle_sub: { es: 'Envía una palabra en español por Push.', en: 'Sends a Spanish word via Push.' },
   toggle_active: { es: 'Activado', en: 'Active' },
   toggle_inactive: { es: 'Desactivado', en: 'Disabled' },
   forgot_in_settings_btn: { es: '¿Olvidaste tu contraseña? Recibir enlace por correo', en: 'Forgot your password? Email me a reset link' },
