@@ -21,6 +21,7 @@ class User(Base):
     word_notification_enabled = Column(Boolean, default=False)
     notification_channel = Column(String, default="push")  # "off" | "push" | "mail" | "push_mail"
     timezone = Column(String, nullable=True, default=None)
+    last_notified_slot = Column(String, nullable=True, default=None)
     
     created_at = Column(DateTime, default=datetime.utcnow)
 

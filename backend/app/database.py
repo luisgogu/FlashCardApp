@@ -51,6 +51,8 @@ def check_and_migrate_db():
                     conn.execute(text("ALTER TABLE users ADD COLUMN notification_channel VARCHAR DEFAULT 'push'"))
                 if 'timezone' not in columns:
                     conn.execute(text("ALTER TABLE users ADD COLUMN timezone VARCHAR"))
+                if 'last_notified_slot' not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN last_notified_slot VARCHAR"))
                 if 'is_admin' not in columns:
                     conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0"))
         if 'cards' in tables:

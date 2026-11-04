@@ -21,7 +21,7 @@ from app.auth_service import (
 from app.email_service import send_password_reset_email
 from app.vapid_service import get_or_create_vapid_keys
 from app.push_service import send_web_push
-from app.scheduler import start_scheduler, stop_scheduler
+from app.scheduler import start_scheduler, stop_scheduler, check_and_send_scheduled_push_reminders
 from app.gcs_sync import download_db_from_gcs, upload_db_to_gcs
 
 # Download DB from GCS if running on Cloud Run before creating tables
@@ -62,8 +62,12 @@ app.add_middleware(
 )
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 def read_root():
+    """Healthcheck endpoint compatible with UptimeRobot (GET & HEAD).
+    Also triggers due scheduled notifications synchronously while Cloud Run CPU is active."""
+    check_and_send_scheduled_push_reminders()
     return {"status": "ok", "app": "FlashCardApp API", "version": "1.0.0"}
 
 

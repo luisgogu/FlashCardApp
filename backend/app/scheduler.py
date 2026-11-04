@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -7,23 +7,42 @@ from app.database import SessionLocal
 from app import crud, models
 from app.push_service import send_web_push
 from app.email_service import send_email_notification
+from app.gcs_sync import upload_db_to_gcs
 
 scheduler = AsyncIOScheduler()
 _dispatched_slots: set[tuple[int, str]] = set()
+CATCHUP_WINDOW_SECONDS = 15 * 60  # 15-minute catch-up window for 5-min UptimeRobot pings on Cloud Run
 
 
-def _get_user_local_slot(tz_name: Optional[str]) -> tuple[str, str]:
-    """Returns (HH:MM, YYYY-MM-DD HH:MM) in the user's configured timezone, falling back to server time."""
-    now_dt = datetime.now()
+def _get_user_local_now(tz_name: Optional[str]) -> datetime:
+    """Returns current datetime in the user's configured timezone, falling back to server time."""
     if tz_name:
         if tz_name.upper() == "UTC":
-            now_dt = datetime.now(timezone.utc)
-        else:
-            try:
-                now_dt = datetime.now(ZoneInfo(tz_name))
-            except Exception:
-                pass
-    return now_dt.strftime("%H:%M"), now_dt.strftime("%Y-%m-%d %H:%M")
+            return datetime.now(timezone.utc)
+        try:
+            return datetime.now(ZoneInfo(tz_name))
+        except Exception:
+            pass
+    return datetime.now()
+
+
+def _match_due_slot(now_dt: datetime, target_hhmm: str) -> Optional[str]:
+    """If target_hhmm (HH:MM) occurred within the last CATCHUP_WINDOW_SECONDS,
+    returns the canonical slot key 'YYYY-MM-DD HH:MM' for that target occurrence."""
+    try:
+        parts = target_hhmm.strip().split(":")
+        th, tm = int(parts[0]), int(parts[1])
+    except Exception:
+        return None
+
+    target_today = now_dt.replace(hour=th, minute=tm, second=0, microsecond=0)
+    target_yesterday = target_today - timedelta(days=1)
+
+    for candidate in (target_today, target_yesterday):
+        elapsed = (now_dt - candidate).total_seconds()
+        if 0 <= elapsed <= CATCHUP_WINDOW_SECONDS:
+            return candidate.strftime("%Y-%m-%d %H:%M")
+    return None
 
 
 def _send_push_to_user_devices(db, user_id: int, payload: dict):
@@ -66,18 +85,25 @@ def check_and_send_scheduled_push_reminders():
         if len(_dispatched_slots) > 1000:
             _dispatched_slots.clear()
 
+        any_dispatched = False
+
         for user in candidate_users:
             target_time = (user.reminder_time or "20:00").strip()
-            user_hhmm, slot_key = _get_user_local_slot(user.timezone)
+            now_dt = _get_user_local_now(user.timezone)
+            slot_key = _match_due_slot(now_dt, target_time)
 
-            if user_hhmm != target_time:
+            if not slot_key:
                 continue
 
-            if (user.id, slot_key) in _dispatched_slots:
+            if user.last_notified_slot == slot_key or (user.id, slot_key) in _dispatched_slots:
                 continue
+
+            user.last_notified_slot = slot_key
+            db.commit()
             _dispatched_slots.add((user.id, slot_key))
+            any_dispatched = True
 
-            print(f"[SCHEDULER] Triggering scheduled notifications at {user_hhmm} for {user.email}...")
+            print(f"[SCHEDULER] Triggering scheduled notifications for slot '{slot_key}' ({user.email})...")
 
             # BUTTON 1 (INDEPENDENT): Daily SRS Review Game Notification
             if user.reminder_enabled and user.notification_channel != 'off':
@@ -85,7 +111,7 @@ def check_and_send_scheduled_push_reminders():
                 count_due = len(due_cards)
 
                 if count_due == 0:
-                    print(f"[SCHEDULER] User {user.email} has 0 cards due at {user_hhmm}. Skipping SRS reminder.")
+                    print(f"[SCHEDULER] User {user.email} has 0 cards due for slot '{slot_key}'. Skipping SRS reminder.")
                 else:
                     title = "FlashCardApp - Repaso Pendiente"
                     body = f"¡Tienes {count_due} tarjeta(s) pendiente(s) de repasar hoy!"
@@ -124,6 +150,9 @@ def check_and_send_scheduled_push_reminders():
                         "card_id": card.id
                     }
                     _send_push_to_user_devices(db, user.id, word_payload)
+
+        if any_dispatched:
+            upload_db_to_gcs()
 
     except Exception as e:
         print(f"[SCHEDULER] Error in check_and_send_scheduled_push_reminders: {e}")
