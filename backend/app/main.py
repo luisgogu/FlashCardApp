@@ -122,6 +122,7 @@ def get_current_user_profile(
 @app.post("/api/auth/change-password")
 def change_password_api(
     req: schemas.ChangePasswordRequest,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -132,6 +133,7 @@ def change_password_api(
             detail="La contraseña actual es incorrecta."
         )
     crud.change_user_password(db=db, user=current_user, new_password=req.new_password)
+    background_tasks.add_task(upload_db_to_gcs)
     return {"status": "ok", "message": "Contraseña actualizada con éxito."}
 
 
@@ -228,22 +230,28 @@ def get_notification_settings_api(
     return {
         "reminder_time": current_user.reminder_time or "20:00",
         "reminder_enabled": current_user.reminder_enabled if current_user.reminder_enabled is not None else True,
-        "notification_channel": current_user.notification_channel or "push"
+        "word_notification_enabled": bool(current_user.word_notification_enabled),
+        "notification_channel": current_user.notification_channel or "push",
+        "timezone": current_user.timezone
     }
 
 
 @app.post("/api/notifications/settings", response_model=schemas.NotificationSettingsResponse)
 def update_notification_settings_api(
     req: schemas.NotificationSettingsRequest,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """[NOTIFICATIONS] Actualiza la hora, estado y canal (off / push / mail / push_mail)."""
+    """[NOTIFICATIONS] Actualiza la hora compartida, los dos botones independientes, el canal y la zona horaria."""
     updated_user = crud.update_notification_settings(db=db, user=current_user, settings=req)
+    background_tasks.add_task(upload_db_to_gcs)
     return {
         "reminder_time": updated_user.reminder_time,
         "reminder_enabled": updated_user.reminder_enabled,
-        "notification_channel": updated_user.notification_channel
+        "word_notification_enabled": bool(updated_user.word_notification_enabled),
+        "notification_channel": updated_user.notification_channel,
+        "timezone": updated_user.timezone
     }
 
 
@@ -287,11 +295,14 @@ def get_vapid_public_key():
 @app.post("/api/push/subscribe", response_model=schemas.PushSubscriptionResponse)
 def subscribe_push_notifications(
     sub_data: schemas.PushSubscriptionCreate,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """[PUSH] Registra o actualiza la suscripción Web Push del usuario y su hora preferida."""
-    return crud.create_or_update_push_subscription(db=db, user_id=current_user.id, sub_data=sub_data)
+    sub = crud.create_or_update_push_subscription(db=db, user_id=current_user.id, sub_data=sub_data)
+    background_tasks.add_task(upload_db_to_gcs)
+    return sub
 
 
 @app.delete("/api/push/unsubscribe")
@@ -350,6 +361,58 @@ def send_test_push_notification(
             sent_count += 1
 
     return {"status": "ok", "sent_count": sent_count, "total_subscriptions": len(subs)}
+
+
+@app.post("/api/push/test-word")
+def send_test_word_push_notification(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """[PUSH] Envía al instante una notificación con una palabra en español a la pantalla de bloqueo para probar el auto-flip."""
+    subs = db.query(models.PushSubscription).filter(
+        models.PushSubscription.user_id == current_user.id,
+        models.PushSubscription.is_active == True
+    ).all()
+
+    if not subs:
+        raise HTTPException(
+            status_code=400,
+            detail="No tienes dispositivos registrados para recibir notificaciones Push."
+        )
+
+    card = crud.pick_word_notification_card(db=db, user_id=current_user.id)
+    if not card:
+        raise HTTPException(
+            status_code=400,
+            detail="Añade al menos una tarjeta a tu glosario antes de probar esta notificación."
+        )
+
+    payload = {
+        "title": "🇪🇸 FlashCard del día",
+        "body": f'"{card.text_es}" — Toca para girar y ver su traducción',
+        "icon": "/icon-192x192.png",
+        "badge": "/favicon.svg",
+        "tag": f"flashcard-word-{card.id}",
+        "url": f"/?flashcard_id={card.id}&autoflip=1",
+        "card_id": card.id
+    }
+
+    sent_count = 0
+    for sub in subs:
+        sub_info = {
+            "endpoint": sub.endpoint,
+            "keys": {"p256dh": sub.p256dh, "auth": sub.auth}
+        }
+        if send_web_push(sub_info, payload):
+            sent_count += 1
+
+    return {
+        "status": "ok",
+        "sent_count": sent_count,
+        "total_subscriptions": len(subs),
+        "card_id": card.id,
+        "text_es": card.text_es
+    }
 
 
 # ==========================================

@@ -18,7 +18,9 @@ class User(Base):
     # Notification Preferences
     reminder_time = Column(String, default="20:00")
     reminder_enabled = Column(Boolean, default=True)
+    word_notification_enabled = Column(Boolean, default=False)
     notification_channel = Column(String, default="push")  # "off" | "push" | "mail" | "push_mail"
+    timezone = Column(String, nullable=True, default=None)
     
     created_at = Column(DateTime, default=datetime.utcnow)
 

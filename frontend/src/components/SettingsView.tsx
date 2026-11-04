@@ -3,7 +3,11 @@ import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useFlipMode } from '../context/FlipModeContext';
-import { subscribeToPushNotifications, sendTestPushNotification } from '../services/pushService';
+import {
+  subscribeToPushNotifications,
+  sendTestPushNotification,
+  sendTestWordPushNotification,
+} from '../services/pushService';
 import {
   Trash2,
   AlertTriangle,
@@ -18,12 +22,13 @@ import {
   Clock,
   KeyRound,
   Mail,
-  BellOff,
   Send,
   Eye,
   EyeOff,
   UserX,
   ArrowRightLeft,
+  Smartphone,
+  Sparkles,
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -31,11 +36,11 @@ interface SettingsViewProps {
   onRefresh: () => void;
 }
 
-export type NotificationChannel = 'off' | 'push' | 'mail' | 'push_mail';
+export type SrsChannel = 'push' | 'mail' | 'push_mail';
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onRefresh }) => {
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { flipMode, setFlipMode } = useFlipMode();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -45,12 +50,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+  const [isSendingForgotEmail, setIsSendingForgotEmail] = useState(false);
 
-  // Notification Preferences State
+  // Notification Preferences State (1 shared time + 2 independent toggles)
   const [reminderTime, setReminderTime] = useState<string>('20:00');
-  const [channel, setChannel] = useState<NotificationChannel>('push');
+  const [srsReminderEnabled, setSrsReminderEnabled] = useState<boolean>(true);
+  const [wordNotificationEnabled, setWordNotificationEnabled] = useState<boolean>(false);
+  const [srsChannel, setSrsChannel] = useState<SrsChannel>('push');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isTestingPush, setIsTestingPush] = useState(false);
+  const [isTestingWordPush, setIsTestingWordPush] = useState(false);
   const [isTestingEmail, setIsTestingEmail] = useState(false);
 
   // Admin & Delete State
@@ -69,26 +78,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
       api.getNotificationSettings()
         .then((data) => {
           setReminderTime(data.reminder_time || '20:00');
-          if (!data.reminder_enabled || data.notification_channel === 'off') {
-            setChannel('off');
+          const srsActive = Boolean(data.reminder_enabled) && data.notification_channel !== 'off';
+          setSrsReminderEnabled(srsActive);
+          setWordNotificationEnabled(Boolean(data.word_notification_enabled));
+          if (
+            data.notification_channel === 'push' ||
+            data.notification_channel === 'mail' ||
+            data.notification_channel === 'push_mail'
+          ) {
+            setSrsChannel(data.notification_channel);
           } else {
-            setChannel((data.notification_channel as NotificationChannel) || 'push');
+            setSrsChannel('push');
           }
         })
         .catch((err) => console.error('Error cargando ajustes de notificaciones:', err));
     }
   }, [user]);
 
-  // Save notification preferences
+  // Save notification preferences (1 shared time + 2 independent buttons)
   const handleSaveNotificationSettings = async () => {
     if (!user) return;
     try {
       setIsSavingSettings(true);
 
-      const reminder_enabled = channel !== 'off';
-      const notification_channel = channel;
+      const needsPushSubscription =
+        wordNotificationEnabled ||
+        (srsReminderEnabled && (srsChannel === 'push' || srsChannel === 'push_mail'));
 
-      if (channel === 'push' || channel === 'push_mail') {
+      if (needsPushSubscription) {
         try {
           await subscribeToPushNotifications(reminderTime);
         } catch (pushErr: any) {
@@ -96,10 +113,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
         }
       }
 
+      let detectedTimezone: string | undefined;
+      try {
+        detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      } catch {
+        detectedTimezone = undefined;
+      }
+
       await api.updateNotificationSettings({
         reminder_time: reminderTime,
-        reminder_enabled,
-        notification_channel
+        reminder_enabled: srsReminderEnabled,
+        word_notification_enabled: wordNotificationEnabled,
+        notification_channel: srsReminderEnabled ? srsChannel : 'off',
+        timezone: detectedTimezone,
       });
 
       showToast(t('save_notification_prefs'));
@@ -122,6 +148,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
       alert(err.message || 'Error enviando la notificación de prueba Push.');
     } finally {
       setIsTestingPush(false);
+    }
+  };
+
+  // Send Test Lock-Screen Word Push
+  const handleTestWordPush = async () => {
+    if (!user) return;
+    try {
+      setIsTestingWordPush(true);
+      await subscribeToPushNotifications(reminderTime);
+      const res = await sendTestWordPushNotification();
+      showToast(`🇪🇸 "${res.text_es}" (${res.sent_count})`);
+    } catch (err: any) {
+      alert(err.message || 'Error enviando la notificación de palabra.');
+    } finally {
+      setIsTestingWordPush(false);
+    }
+  };
+
+  // Send Password Recovery Email directly from Settings
+  const handleSendResetEmailFromSettings = async () => {
+    if (!user?.email) return;
+    try {
+      setIsSendingForgotEmail(true);
+      await api.requestPasswordReset(user.email, language);
+      showToast(t('forgot_in_settings_sent'));
+    } catch (err: any) {
+      alert(err.message || t('generic_error'));
+    } finally {
+      setIsSendingForgotEmail(false);
     }
   };
 
@@ -324,12 +379,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
                 )}
                 <span>{t('update_password_btn')}</span>
               </button>
+
+              <div className="pt-1 text-center">
+                <button
+                  type="button"
+                  onClick={handleSendResetEmailFromSettings}
+                  disabled={isSendingForgotEmail}
+                  className="text-[11px] font-semibold text-[#C86D51] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  {isSendingForgotEmail && <Loader2 className="w-3 h-3 animate-spin" />}
+                  <span>{t('forgot_in_settings_btn')}</span>
+                </button>
+              </div>
             </form>
           )}
         </div>
       </div>
 
-      {/* NOTIFICATION PREFERENCES & BOX SELECTOR (PUSH / MAIL / PUSH_MAIL / OFF) */}
+      {/* NOTIFICATION PREFERENCES: 1 SHARED TIME + 2 INDEPENDENT BUTTONS */}
       <div className="bg-white border border-[#E6E0D4] rounded-2xl p-4 shadow-xs space-y-3">
         <div className="flex items-center gap-2 text-[#2C2621]">
           <Bell className="w-4 h-4 text-[#C86D51] shrink-0" />
@@ -338,129 +405,139 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
           </div>
         </div>
 
-        {/* 4-BOX SELECTOR */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          {/* BOX 1: OFF */}
-          <div
-            onClick={() => setChannel('off')}
-            className={`cursor-pointer border rounded-xl p-3 transition flex flex-col justify-between ${
-              channel === 'off'
-                ? 'bg-[#2C2621] border-[#2C2621] text-white shadow-xs'
-                : 'bg-[#FAF8F5] border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <BellOff className={`w-4 h-4 ${channel === 'off' ? 'text-amber-400' : 'text-[#7C746A]'}`} />
-              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                channel === 'off' ? 'border-white bg-white' : 'border-[#A0988E]'
-              }`}>
-                {channel === 'off' && <div className="w-2 h-2 rounded-full bg-[#2C2621]" />}
-              </div>
-            </div>
-            <div>
-              <span className="block text-xs font-bold">{t('channel_off')}</span>
-              <span className={`block text-[9px] ${channel === 'off' ? 'opacity-80' : 'text-[#7C746A]'}`}>
-                {t('channel_off_sub')}
-              </span>
-            </div>
-          </div>
-
-          {/* BOX 2: PUSH */}
-          <div
-            onClick={() => setChannel('push')}
-            className={`cursor-pointer border rounded-xl p-3 transition flex flex-col justify-between ${
-              channel === 'push'
-                ? 'bg-[#2C2621] border-[#2C2621] text-white shadow-xs'
-                : 'bg-[#FAF8F5] border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <Bell className={`w-4 h-4 ${channel === 'push' ? 'text-[#C86D51]' : 'text-[#C86D51]'}`} />
-              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                channel === 'push' ? 'border-white bg-white' : 'border-[#A0988E]'
-              }`}>
-                {channel === 'push' && <div className="w-2 h-2 rounded-full bg-[#2C2621]" />}
-              </div>
-            </div>
-            <div>
-              <span className="block text-xs font-bold">{t('channel_push')}</span>
-              <span className={`block text-[9px] ${channel === 'push' ? 'opacity-80' : 'text-[#7C746A]'}`}>
-                {t('channel_push_sub')}
-              </span>
-            </div>
-          </div>
-
-          {/* BOX 3: MAIL */}
-          <div
-            onClick={() => setChannel('mail')}
-            className={`cursor-pointer border rounded-xl p-3 transition flex flex-col justify-between ${
-              channel === 'mail'
-                ? 'bg-[#2C2621] border-[#2C2621] text-white shadow-xs'
-                : 'bg-[#FAF8F5] border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <Mail className={`w-4 h-4 ${channel === 'mail' ? 'text-sky-400' : 'text-sky-600'}`} />
-              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                channel === 'mail' ? 'border-white bg-white' : 'border-[#A0988E]'
-              }`}>
-                {channel === 'mail' && <div className="w-2 h-2 rounded-full bg-[#2C2621]" />}
-              </div>
-            </div>
-            <div>
-              <span className="block text-xs font-bold">{t('channel_mail')}</span>
-              <span className={`block text-[9px] ${channel === 'mail' ? 'opacity-80' : 'text-[#7C746A]'}`}>
-                {t('channel_mail_sub')}
-              </span>
-            </div>
-          </div>
-
-          {/* BOX 4: PUSH & MAIL */}
-          <div
-            onClick={() => setChannel('push_mail')}
-            className={`cursor-pointer border rounded-xl p-3 transition flex flex-col justify-between ${
-              channel === 'push_mail'
-                ? 'bg-[#2C2621] border-[#2C2621] text-white shadow-xs'
-                : 'bg-[#FAF8F5] border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1">
-                <Bell className={`w-3.5 h-3.5 ${channel === 'push_mail' ? 'text-[#C86D51]' : 'text-[#C86D51]'}`} />
-                <Mail className={`w-3.5 h-3.5 ${channel === 'push_mail' ? 'text-sky-400' : 'text-sky-600'}`} />
-              </div>
-              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                channel === 'push_mail' ? 'border-white bg-white' : 'border-[#A0988E]'
-              }`}>
-                {channel === 'push_mail' && <div className="w-2 h-2 rounded-full bg-[#2C2621]" />}
-              </div>
-            </div>
-            <div>
-              <span className="block text-xs font-bold">{t('channel_push_mail')}</span>
-              <span className={`block text-[9px] ${channel === 'push_mail' ? 'opacity-80' : 'text-[#7C746A]'}`}>
-                {t('channel_push_mail_sub')}
-              </span>
-            </div>
-          </div>
+        {/* SHARED TIME PICKER ("UNA HORA") */}
+        <div className="bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl px-3 py-2.5 flex items-center justify-between">
+          <span className="text-xs text-[#2C2621] font-bold flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-[#C86D51]" />
+            <span>{t('reminder_time_label')}</span>
+          </span>
+          <input
+            type="time"
+            value={reminderTime}
+            onChange={(e) => setReminderTime(e.target.value)}
+            className="bg-white border border-[#E6E0D4] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-[#2C2621] focus:outline-none focus:border-[#C86D51]"
+          />
         </div>
 
-        {/* TIME INPUT & SAVE BUTTON */}
-        {channel !== 'off' && (
-          <div className="flex items-center gap-3 pt-1 animate-fade-in">
-            <div className="flex-1 bg-[#FAF8F5] border border-[#E6E0D4] rounded-xl px-3 py-2 flex items-center justify-between">
-              <span className="text-xs text-[#7C746A] font-medium flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#2C2621]" />
-                <span>{t('reminder_time_label')}</span>
+        {/* INDEPENDENT BUTTON 1: SRS FLASHCARD GAME REMINDER */}
+        <div
+          className={`border rounded-xl p-3 transition space-y-2.5 ${
+            srsReminderEnabled
+              ? 'bg-[#FAF8F5] border-[#2C2621]'
+              : 'bg-[#FAF8F5]/60 border-[#E6E0D4]'
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => setSrsReminderEnabled((prev) => !prev)}
+            className="w-full text-left flex items-start justify-between gap-3 cursor-pointer"
+          >
+            <div className="space-y-0.5">
+              <span className="block text-xs font-bold text-[#2C2621]">
+                {t('srs_toggle_title')}
               </span>
-              <input
-                type="time"
-                value={reminderTime}
-                onChange={(e) => setReminderTime(e.target.value)}
-                className="bg-white border border-[#E6E0D4] rounded-lg px-2 py-1 text-xs font-mono font-bold text-[#2C2621] focus:outline-none focus:border-[#C86D51]"
-              />
+              <span className="block text-[10px] text-[#7C746A] leading-snug">
+                {t('srs_toggle_sub')}
+              </span>
             </div>
-          </div>
-        )}
+
+            <span
+              className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold transition ${
+                srsReminderEnabled
+                  ? 'bg-[#2C2621] text-white'
+                  : 'bg-[#E6E0D4] text-[#5C5549]'
+              }`}
+            >
+              {srsReminderEnabled ? t('toggle_active') : t('toggle_inactive')}
+            </span>
+          </button>
+
+          {/* CHANNEL SUB-SELECTOR WHEN BUTTON 1 IS ACTIVE */}
+          {srsReminderEnabled && (
+            <div className="pt-2 border-t border-[#E6E0D4] space-y-1.5 animate-fade-in">
+              <span className="block text-[10px] font-semibold text-[#7C746A]">
+                {t('srs_channel_label')}
+              </span>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setSrsChannel('push')}
+                  className={`py-1.5 px-2 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1 transition cursor-pointer ${
+                    srsChannel === 'push'
+                      ? 'bg-[#2C2621] border-[#2C2621] text-white'
+                      : 'bg-white border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
+                  }`}
+                >
+                  <Bell className="w-3 h-3 text-[#C86D51]" />
+                  <span>{t('channel_push')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSrsChannel('mail')}
+                  className={`py-1.5 px-2 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1 transition cursor-pointer ${
+                    srsChannel === 'mail'
+                      ? 'bg-[#2C2621] border-[#2C2621] text-white'
+                      : 'bg-white border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
+                  }`}
+                >
+                  <Mail className={`w-3 h-3 ${srsChannel === 'mail' ? 'text-sky-400' : 'text-sky-600'}`} />
+                  <span>{t('channel_mail')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSrsChannel('push_mail')}
+                  className={`py-1.5 px-2 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1 transition cursor-pointer ${
+                    srsChannel === 'push_mail'
+                      ? 'bg-[#2C2621] border-[#2C2621] text-white'
+                      : 'bg-white border-[#E6E0D4] text-[#2C2621] hover:border-[#C86D51]'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3 text-[#C86D51]" />
+                  <span>{t('channel_push_mail')}</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* INDEPENDENT BUTTON 2: SPANISH WORD ON LOCK SCREEN */}
+        <div
+          className={`border rounded-xl p-3 transition ${
+            wordNotificationEnabled
+              ? 'bg-[#FAF8F5] border-[#2C2621]'
+              : 'bg-[#FAF8F5]/60 border-[#E6E0D4]'
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => setWordNotificationEnabled((prev) => !prev)}
+            className="w-full text-left flex items-start justify-between gap-3 cursor-pointer"
+          >
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5 text-[#C86D51] shrink-0" />
+                <span className="text-xs font-bold text-[#2C2621]">
+                  {t('word_toggle_title')}
+                </span>
+              </div>
+              <span className="block text-[10px] text-[#7C746A] leading-snug">
+                {t('word_toggle_sub')}
+              </span>
+            </div>
+
+            <span
+              className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold transition ${
+                wordNotificationEnabled
+                  ? 'bg-[#2C2621] text-white'
+                  : 'bg-[#E6E0D4] text-[#5C5549]'
+              }`}
+            >
+              {wordNotificationEnabled ? t('toggle_active') : t('toggle_inactive')}
+            </span>
+          </button>
+        </div>
 
         <button
           type="button"
@@ -477,34 +554,50 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ totalCardsCount, onR
         </button>
 
         {/* TEST BUTTONS */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#F0EBE1]">
+        <div className="space-y-2 pt-2 border-t border-[#F0EBE1]">
           <button
             type="button"
-            onClick={handleTestPush}
-            disabled={isTestingPush}
-            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+            onClick={handleTestWordPush}
+            disabled={isTestingWordPush}
+            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#C86D51]/50 text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            {isTestingPush ? (
+            {isTestingWordPush ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2C2621]" />
             ) : (
-              <Bell className="w-3.5 h-3.5 text-[#C86D51]" />
+              <Smartphone className="w-3.5 h-3.5 text-[#C86D51]" />
             )}
-            <span>{t('test_push_btn')}</span>
+            <span>{t('test_word_push_btn')}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleTestEmail}
-            disabled={isTestingEmail}
-            className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            {isTestingEmail ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2C2621]" />
-            ) : (
-              <Send className="w-3.5 h-3.5 text-sky-600" />
-            )}
-            <span>{t('test_email_btn')}</span>
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleTestPush}
+              disabled={isTestingPush}
+              className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              {isTestingPush ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2C2621]" />
+              ) : (
+                <Bell className="w-3.5 h-3.5 text-[#C86D51]" />
+              )}
+              <span>{t('test_push_btn')}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleTestEmail}
+              disabled={isTestingEmail}
+              className="w-full bg-[#FAF8F5] hover:bg-[#F5F2EB] border border-[#E6E0D4] text-[#2C2621] rounded-xl py-2 px-3 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              {isTestingEmail ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2C2621]" />
+              ) : (
+                <Send className="w-3.5 h-3.5 text-sky-600" />
+              )}
+              <span>{t('test_email_btn')}</span>
+            </button>
+          </div>
         </div>
       </div>
 

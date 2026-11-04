@@ -219,6 +219,19 @@ export const api = {
   },
 
   /**
+   * Get a single card by ID.
+   */
+  async getCard(id: number): Promise<Card> {
+    const res = await fetch(`${API_BASE_URL}/cards/${id}`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      throw new Error('Error al obtener la tarjeta');
+    }
+    return res.json();
+  },
+
+  /**
    * List all cards.
    */
   async getCards(skip = 0, limit = 1000): Promise<Card[]> {
@@ -252,7 +265,13 @@ export const api = {
   /**
    * Get user notification preferences.
    */
-  async getNotificationSettings(): Promise<{ reminder_time: string; reminder_enabled: boolean; notification_channel: string }> {
+  async getNotificationSettings(): Promise<{
+    reminder_time: string;
+    reminder_enabled: boolean;
+    word_notification_enabled: boolean;
+    notification_channel: string;
+    timezone?: string | null;
+  }> {
     const res = await fetch(`${API_BASE_URL}/notifications/settings`, {
       headers: getAuthHeaders()
     });
@@ -265,7 +284,19 @@ export const api = {
   /**
    * Update notification preferences.
    */
-  async updateNotificationSettings(settings: { reminder_time: string; reminder_enabled: boolean; notification_channel: string }): Promise<{ reminder_time: string; reminder_enabled: boolean; notification_channel: string }> {
+  async updateNotificationSettings(settings: {
+    reminder_time: string;
+    reminder_enabled: boolean;
+    word_notification_enabled: boolean;
+    notification_channel: string;
+    timezone?: string;
+  }): Promise<{
+    reminder_time: string;
+    reminder_enabled: boolean;
+    word_notification_enabled: boolean;
+    notification_channel: string;
+    timezone?: string | null;
+  }> {
     const res = await fetch(`${API_BASE_URL}/notifications/settings`, {
       method: 'POST',
       headers: getAuthHeaders({

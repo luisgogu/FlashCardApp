@@ -115,3 +115,25 @@ export async function sendTestPushNotification(token?: string): Promise<number> 
   const data = await res.json();
   return data.sent_count;
 }
+
+export async function sendTestWordPushNotification(token?: string): Promise<{ sent_count: number; card_id: number; text_es: string }> {
+  const authHeaders: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+  const authToken = token || localStorage.getItem('flashcardapp_token');
+  if (authToken) {
+    authHeaders['Authorization'] = `Bearer ${authToken}`;
+  }
+
+  const res = await fetch('/api/push/test-word', {
+    method: 'POST',
+    headers: authHeaders
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Error enviando notificación de palabra de prueba.');
+  }
+
+  return res.json();
+}

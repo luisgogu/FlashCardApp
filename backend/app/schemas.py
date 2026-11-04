@@ -81,14 +81,18 @@ class ResetPasswordRequest(BaseModel):
 
 class NotificationSettingsRequest(BaseModel):
     reminder_time: str = Field("20:00", description="Hora preferida de aviso (HH:MM)")
-    reminder_enabled: bool = Field(True, description="Si las notificaciones están activadas")
+    reminder_enabled: bool = Field(True, description="Si el aviso del juego/repaso diario SRS está activado")
+    word_notification_enabled: Optional[bool] = Field(None, description="Si la notificación de palabra en pantalla de bloqueo está activada")
     notification_channel: str = Field("push", description="Canal: off | push | mail | push_mail")
+    timezone: Optional[str] = Field(None, description="Zona horaria IANA del dispositivo (ej. Europe/Madrid)")
 
 
 class NotificationSettingsResponse(BaseModel):
     reminder_time: str
     reminder_enabled: bool
+    word_notification_enabled: bool = False
     notification_channel: str
+    timezone: Optional[str] = None
 
 
 class UserResponse(BaseModel):
@@ -98,7 +102,9 @@ class UserResponse(BaseModel):
     is_admin: Optional[bool] = False
     reminder_time: Optional[str] = "20:00"
     reminder_enabled: Optional[bool] = True
+    word_notification_enabled: Optional[bool] = False
     notification_channel: Optional[str] = "push"
+    timezone: Optional[str] = None
     created_at: Optional[datetime] = None
 
     class Config:

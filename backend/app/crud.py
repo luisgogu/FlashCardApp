@@ -1,3 +1,4 @@
+import random
 import re
 from typing import List, Optional
 from datetime import datetime
@@ -34,6 +35,7 @@ def create_user(db: Session, user_data: schemas.UserRegister) -> User:
         is_admin=is_admin,
         reminder_time="20:00",
         reminder_enabled=True,
+        word_notification_enabled=False,
         notification_channel="push",
         created_at=datetime.utcnow()
     )
@@ -62,13 +64,29 @@ def update_notification_settings(
     user: User,
     settings: schemas.NotificationSettingsRequest
 ) -> User:
-    """Updates user notification preferences (reminder_time, reminder_enabled, notification_channel)."""
+    """Updates user notification preferences (shared reminder_time, independent toggles, channel, timezone)."""
     user.reminder_time = settings.reminder_time.strip()
     user.reminder_enabled = settings.reminder_enabled
+    if settings.word_notification_enabled is not None:
+        user.word_notification_enabled = settings.word_notification_enabled
     user.notification_channel = settings.notification_channel.strip().lower()
+    if settings.timezone is not None and settings.timezone.strip():
+        user.timezone = settings.timezone.strip()
     db.commit()
     db.refresh(user)
     return user
+
+
+def pick_word_notification_card(db: Session, user_id: int) -> Optional[Card]:
+    """Picks a Spanish flashcard for lock-screen push notification:
+    prioritizes cards due for SRS review today, falling back to any random card in the user's glossary."""
+    due_cards = get_due_cards(db=db, user_id=user_id)
+    if due_cards:
+        return random.choice(due_cards)
+    all_cards = get_cards(db=db, user_id=user_id)
+    if all_cards:
+        return random.choice(all_cards)
+    return None
 
 
 # CARD CRUD (User-scoped)
